@@ -50,35 +50,53 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Assemble the static site
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p _site
           # everything the browser needs, and nothing else
           cp index.html _site/
-          cp _headers _site/ 2>/dev/null || true
-          cp -r assets _site/
-          cp -r js _site/
+          cp -r assets js _site/
+          [ -f _headers ] && cp _headers _site/
           # Jekyll would otherwise skip files starting with an underscore
           touch _site/.nojekyll
-          # server code and secrets must never be published
-          test ! -e _site/server  || (echo "server/ leaked into the bundle" && exit 1)
-          test ! -e _site/.env    || (echo ".env leaked into the bundle" && exit 1)
-          test ! -e _site/scripts || (echo "scripts/ leaked into the bundle" && exit 1)
+
+          # Server code and secrets must never be published. Written as plain
+          # ifs on purpose: `test ... || ( ... exit 1 )` only exits the subshell,
+          # so that form would report a leak and still deploy it.
+          for forbidden in server scripts .env .env.local logs; do
+            if [ -e "_site/$forbidden" ]; then
+              echo "::error::$forbidden leaked into the published bundle"
+              exit 1
+            fi
+          done
+
           echo "Bundle contents:"
           find _site -type f | sort
           echo "Bundle size: $(du -sh _site | cut -f1)"
 
-      - name: Check every script tag resolves
+      - name: Check every asset the page references is present
+        shell: bash
         run: |
-          # a missing file here means a blank page for every visitor
-          missing=0
-          grep -o 'src="[^"]*"' index.html | sed 's/src="//;s/"//' | while read -r f; do
-            case "$f" in http*) continue ;; esac
-            if [ ! -f "_site/$f" ]; then echo "MISSING: $f"; missing=1; fi
-          done
-          grep -o 'href="[^"]*\.css"' index.html | sed 's/href="//;s/"//' | while read -r f; do
-            if [ ! -f "_site/$f" ]; then echo "MISSING: $f"; missing=1; fi
-          done
-          test "$missing" -eq 0
+          set -euo pipefail
+          # A missing file here is a blank page for every visitor, so this must
+          # actually fail. The names are collected on stdout rather than into a
+          # variable inside the loop: a `while` on the right of a pipe runs in a
+          # subshell, so a flag set in there is lost and the check always passed.
+          missing=$(
+            {
+              grep -o 'src="[^"]*"' index.html | sed 's/src="//;s/"//' | grep -v '^http'
+              grep -o 'href="[^"]*\.css"' index.html | sed 's/href="//;s/"//'
+            } | while read -r f; do
+              [ -f "_site/$f" ] || echo "$f"
+            done
+          )
+          if [ -n "$missing" ]; then
+            echo "::error::assets referenced by index.html but missing from the bundle:"
+            echo "$missing"
+            exit 1
+          fi
+          echo "All $(grep -c 'src="js' index.html) referenced assets are present."
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
