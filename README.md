@@ -1,7 +1,9 @@
-# AI QA Toolkit
+# EmeSoft QA Toolkit
 
 **AI-powered Tools for Smarter and Faster Software Testing**
 *Bộ công cụ AI hỗ trợ kiểm thử phần mềm thông minh và nhanh hơn.*
+
+Có landing page ở `#/`, dashboard công cụ ở `#/tools`, mỗi công cụ một URL riêng.
 
 24 công cụ QA/QC trong một web app: 20 công cụ chạy hoàn toàn trong trình duyệt và
 4 công cụ có AI hỗ trợ (test case, bug report, phân tích log, test report).
@@ -74,6 +76,37 @@ Riêng các công cụ AI, SHA-384/512 và xác minh chữ ký JWT HS256 cần t
 
 `serve.bat` / `serve.ps1` vẫn còn trong repo như phương án dự phòng khi máy chưa có Node
 (chúng dùng PowerShell `HttpListener`, không làm proxy AI).
+
+---
+
+## 2b. Giao diện & thương hiệu
+
+Palette và typography **lấy đo từ emesoft.net**, không phải đoán:
+
+| | |
+|---|---|
+| Đỏ thương hiệu | `#D3222A` — đo từ nút trên trang chủ EmeSoft |
+| Đen ấm | `#252724` — dùng cho các dải tối (hero, sidebar) |
+| Slate / muted | `#33373D` / `#69727D` |
+| Font | **Montserrat**, self-host |
+
+**Logo** lấy từ `emesoft.net`, tải về `assets/img/` (bản màu cho nền sáng, bản trắng cho
+sidebar tối và footer, mark vuông làm favicon). Tải về thay vì nhúng URL ngoài vì CSP của
+toolkit là `img-src 'self' data:` và vì toolkit phải chạy được offline.
+
+**Font self-host, không dùng Google Fonts.** Gọi Google nghĩa là mỗi lần mở trang là một
+request tới bên thứ ba — trái với đúng câu mà footer đang hứa về dữ liệu không rời khỏi
+trang, và sẽ phải mở CSP cho `fonts.gstatic.com`. Self-host giữ được `font-src 'self'`.
+Montserrat là variable font nên **một file cho cả weight 400–700**, và `unicode-range` khiến
+trang tiếng Anh không tải subset tiếng Việt. Tổng 119 KB cho 3 subset.
+
+**Màu lỗi tách khỏi màu brand.** `--err` là `#B42318` (sáng) / `#F27A6E` (tối), cố ý sâu hơn
+đỏ brand — nếu để gần nhau thì banner lỗi và nút "Generate" trông như cùng một thứ.
+
+**Tương phản đã đo, không phải ước.** Nút primary từng chỉ đạt 3.94:1 ở dark mode (đỏ brand
+được làm sáng cho dễ đọc trên nền tối, nhưng chữ trắng trên đó thì fail). Giờ nút filled luôn
+dùng `--brand-solid: #D3222A` ở **cả hai** theme → **5.21:1, đạt WCAG AA**. Chữ body 11.78:1
+(sáng) và 13.81:1 (tối).
 
 ---
 
@@ -336,7 +369,9 @@ scripts/probe-providers.js npm run probe — endpoint nào tới được
 jsconfig.json            IntelliSense cho code browser + server
 
 index.html               khung trang + thứ tự nạp script
-assets/css/app.css       design tokens, light/dark, responsive
+assets/css/app.css       design tokens, light/dark, landing page, responsive
+assets/img/              logo EmeSoft (bản màu, bản trắng, mark cho favicon)
+assets/fonts/            Montserrat self-host (3 subset, variable 400-700)
 js/core.js               registry, router hash, i18n, markdown, helper DOM
 js/i18n.js               chuỗi giao diện EN/VI
 js/boot.js               khởi động: theme, ngôn ngữ, search, probe server

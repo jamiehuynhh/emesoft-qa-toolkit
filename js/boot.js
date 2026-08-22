@@ -32,11 +32,11 @@
 
   var globalSearch = document.getElementById('globalSearch');
   globalSearch.addEventListener('input', function () {
-    if (QAT.currentId()) { location.hash = '#/'; return; }
+    if (QAT.currentId() || QAT.isLanding()) { location.hash = '#/tools'; return; }
     QAT.renderDashboard(document.getElementById('view'));
   });
   globalSearch.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { this.value = ''; QAT.renderDashboard(document.getElementById('view')); }
+    if (e.key === 'Escape') { this.value = ''; if (!QAT.isLanding()) QAT.renderDashboard(document.getElementById('view')); }
     if (e.key === 'Enter') {
       var hits = QAT.search(this.value);
       if (hits.length) location.hash = '#/t/' + hits[0].id;
@@ -107,7 +107,7 @@
   QAT.ai.probe().then(function (srv) {
     var switched = QAT.ai.autoSelect();
     if (srv.available) {
-      console.log('%cAI QA Toolkit', 'color:#C8102E;font-weight:bold',
+      console.log('%cEmeSoft QA Toolkit', 'color:#D3222A;font-weight:bold',
         'Node server ' + srv.node + ' — AI proxy ' + (srv.aiConfigured ? 'ready' : 'no key set'));
     }
     // repaint an AI tool page so its banner reflects what we just learned
@@ -115,6 +115,6 @@
     if ((switched || srv.available) && id && QAT.byId[id] && QAT.byId[id].ai) QAT.route(true);
   });
 
-  console.log('%cAI QA Toolkit', 'color:#C8102E;font-weight:bold', 'v' + QAT.version +
+  console.log('%cEmeSoft QA Toolkit', 'color:#D3222A;font-weight:bold', 'v' + QAT.version +
     ' — ' + QAT.tools.length + ' tools loaded');
 })();

@@ -342,13 +342,21 @@
     return m ? m[1] : null;
   };
 
+  // #/ is the landing page; the working dashboard lives at #/tools. A first
+  // visitor needs to know what this is before being dropped into 24 tools.
+  QAT.isLanding = function () {
+    var h = location.hash || '';
+    return h === '' || h === '#' || h === '#/' ;
+  };
+
   function crumbs(t) {
     var c = document.getElementById('crumbs');
     if (!c) return;
     if (!t) {
-      c.innerHTML = '<b>' + QAT.t('nav.dashboard') + '</b>';
+      c.innerHTML = '<a href="#/">' + QAT.t('nav.home') + '</a>' +
+        '<span class="sep">/</span><b>' + QAT.t('nav.dashboard') + '</b>';
     } else {
-      c.innerHTML = '<a href="#/">' + QAT.t('nav.dashboard') + '</a>' +
+      c.innerHTML = '<a href="#/tools">' + QAT.t('nav.dashboard') + '</a>' +
         '<span class="sep">/</span><span>' + QAT.esc(QAT.groupName(t.group)) + '</span>' +
         '<span class="sep">/</span><b>' + QAT.esc(QAT.name(t)) + '</b>';
     }
@@ -359,15 +367,27 @@
     if (!view) return;
     var id = QAT.currentId();
     var tool = id ? QAT.byId[id] : null;
+    var landing = QAT.isLanding();
+
+    document.body.classList.toggle('is-landing', landing);
+
+    if (landing) {
+      document.title = 'EmeSoft QA Toolkit — ' + QAT.t('landing.metaTag');
+      QAT.renderLanding(view);
+      QAT.renderSidebar();
+      if (!keepScroll) window.scrollTo(0, 0);
+      closeSidebar();
+      return;
+    }
 
     if (id && !tool) {
       view.innerHTML = '<div class="no-result"><h3>404</h3><p>' + QAT.t('msg.noTool') +
-        '</p><p style="margin-top:12px"><a href="#/">' + QAT.t('nav.dashboard') + '</a></p></div>';
+        '</p><p style="margin-top:12px"><a href="#/tools">' + QAT.t('nav.dashboard') + '</a></p></div>';
       crumbs(null);
       return;
     }
 
-    document.title = (tool ? QAT.name(tool) + ' — ' : '') + 'AI QA Toolkit';
+    document.title = (tool ? QAT.name(tool) + ' — ' : '') + 'EmeSoft QA Toolkit';
     crumbs(tool);
 
     if (!tool) {
@@ -388,6 +408,117 @@
     closeSidebar();
   };
 
+  /* ---------------------------------------------------------------- landing */
+  QAT.renderLanding = function (view) {
+    var T = QAT.t;
+    var aiCount = QAT.tools.filter(function (t) { return t.ai; }).length;
+    var offline = QAT.tools.length - aiCount;
+
+    function cats() {
+      return QAT.GROUPS.map(function (g) {
+        var n = QAT.tools.filter(function (t) { return t.group === g.id; }).length;
+        if (!n) return '';
+        return '<a class="lp-cat" href="#/tools"><b>' + QAT.esc(QAT.L(g.en, g.vi)) + '</b>' +
+          '<span>' + QAT.esc(T('landing.cat.' + g.id)) + '</span>' +
+          '<span class="n">' + n + ' ' + T('landing.toolsWord') + '</span></a>';
+      }).join('');
+    }
+
+    function card(icon, titleKey, bodyKey) {
+      return '<div class="lp-card"><div class="ico">' + icon + '</div>' +
+        '<h3>' + T(titleKey) + '</h3><p>' + T(bodyKey) + '</p></div>';
+    }
+
+    function tick(label, body) {
+      return '<li><span class="tick">&#10003;</span><span><b>' + label + '</b> — ' + body + '</span></li>';
+    }
+
+    view.innerHTML =
+      '<nav class="lp-nav"><div class="lp-nav-in">' +
+        '<img src="assets/img/emesoft-logo.png" alt="EmeSoft" width="164" height="34">' +
+        '<span class="lp-nav-sep"></span>' +
+        '<span class="lp-nav-name">QA Toolkit</span>' +
+        '<span class="lp-nav-links">' +
+          '<a href="#/tools">' + T('landing.nav.tools') + '</a>' +
+          '<a href="#landing-how">' + T('landing.nav.how') + '</a>' +
+          '<a href="https://www.emesoft.net/" target="_blank" rel="noopener noreferrer">emesoft.net</a>' +
+        '</span>' +
+      '</div></nav>' +
+
+      '<header class="lp-hero"><div class="lp-hero-in">' +
+        '<span class="lp-eyebrow">' + T('landing.eyebrow') + '</span>' +
+        '<h1>' + T('landing.h1a') + ' <em>' + T('landing.h1b') + '</em></h1>' +
+        '<p class="lp-sub">' + T('landing.sub') + '</p>' +
+        '<div class="lp-cta">' +
+          '<a class="lp-btn primary" href="#/tools">' + T('landing.ctaPrimary') + ' &rarr;</a>' +
+          '<a class="lp-btn ghost" href="#landing-how">' + T('landing.ctaSecondary') + '</a>' +
+        '</div>' +
+        '<p class="lp-hero-note">' + T('landing.heroNote') + '</p>' +
+      '</div></header>' +
+
+      '<div class="lp-metrics">' +
+        '<div class="lp-metric"><b>' + QAT.tools.length + '</b><span>' + T('hero.tools') + '</span></div>' +
+        '<div class="lp-metric"><b>' + offline + '</b><span>' + T('landing.metric.offline') + '</span></div>' +
+        '<div class="lp-metric"><b>' + aiCount + '</b><span>' + T('hero.ai') + '</span></div>' +
+        '<div class="lp-metric"><b>0</b><span>' + T('landing.metric.deps') + '</span></div>' +
+      '</div>' +
+
+      '<section class="lp-section"><div class="lp-head">' +
+        '<div class="kicker">' + T('landing.why.kicker') + '</div>' +
+        '<h2>' + T('landing.why.title') + '</h2>' +
+        '<p>' + T('landing.why.body') + '</p>' +
+      '</div><div class="lp-grid">' +
+        card('&#9737;', 'landing.f1.t', 'landing.f1.b') +
+        card('&#8987;', 'landing.f2.t', 'landing.f2.b') +
+        card('AC', 'landing.f3.t', 'landing.f3.b') +
+        card('&#9635;', 'landing.f4.t', 'landing.f4.b') +
+      '</div></section>' +
+
+      '<div class="lp-band"><section class="lp-section" id="landing-how">' +
+        '<div class="lp-split">' +
+          '<div><div class="lp-head" style="margin-bottom:22px">' +
+            '<div class="kicker">' + T('landing.how.kicker') + '</div>' +
+            '<h2>' + T('landing.how.title') + '</h2>' +
+            '<p>' + T('landing.how.body') + '</p>' +
+          '</div></div>' +
+          '<ul class="lp-list">' +
+            tick(T('landing.h1.t'), T('landing.h1.b')) +
+            tick(T('landing.h2.t'), T('landing.h2.b')) +
+            tick(T('landing.h3.t'), T('landing.h3.b')) +
+            tick(T('landing.h4.t'), T('landing.h4.b')) +
+          '</ul>' +
+        '</div>' +
+      '</section></div>' +
+
+      '<section class="lp-section"><div class="lp-head">' +
+        '<div class="kicker">' + T('landing.cats.kicker') + '</div>' +
+        '<h2>' + T('landing.cats.title') + '</h2>' +
+      '</div><div class="lp-cats">' + cats() + '</div></section>' +
+
+      '<section class="lp-final">' +
+        '<h2>' + T('landing.final.title') + '</h2>' +
+        '<p>' + T('landing.final.body') + '</p>' +
+        '<div class="lp-cta"><a class="lp-btn primary" href="#/tools">' +
+          T('landing.ctaPrimary') + ' &rarr;</a></div>' +
+      '</section>' +
+
+      '<footer class="lp-foot"><div class="lp-foot-in">' +
+        '<img src="assets/img/emesoft-logo-white.png" alt="EmeSoft">' +
+        '<span>' + T('landing.foot') + '</span>' +
+        '<span class="spacer"></span>' +
+        '<a href="https://www.emesoft.net/" target="_blank" rel="noopener noreferrer">emesoft.net</a>' +
+      '</div></footer>';
+
+    // in-page anchor without fighting the hash router
+    QAT.$$('a[href^="#landing-"]', view).forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var el = document.getElementById(this.getAttribute('href').slice(1));
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  };
+
   /* -------------------------------------------------------------- dashboard */
   var dashFilter = 'all';
 
@@ -396,15 +527,16 @@
     var list = QAT.search(q);
     var aiCount = QAT.tools.filter(function (t) { return t.ai; }).length;
 
-    var html = '<section class="hero">' +
-      '<h1>' + QAT.t('hero.title') + '</h1>' +
-      '<p>' + QAT.t('hero.sub') + '</p>' +
-      '<div class="hero-stats">' +
-      '<div><b>' + QAT.tools.length + '</b><span>' + QAT.t('hero.tools') + '</span></div>' +
-      '<div><b>' + aiCount + '</b><span>' + QAT.t('hero.ai') + '</span></div>' +
-      '<div><b>' + QAT.GROUPS.length + '</b><span>' + QAT.t('hero.groups') + '</span></div>' +
-      '<div><b>100%</b><span>' + QAT.t('hero.client') + '</span></div>' +
-      '</div></section>';
+    // The landing page carries the pitch now, so the working view gets a compact
+    // header instead of a second hero the user has to scroll past every time.
+    var html = '<div class="dash-head">' +
+      '<div><h1>' + QAT.t('nav.dashboard') + '</h1>' +
+      '<p>' + QAT.t('dash.sub') + '</p></div>' +
+      '<div class="dash-counts">' +
+        '<span><b>' + QAT.tools.length + '</b> ' + QAT.t('hero.tools') + '</span>' +
+        '<span><b>' + (QAT.tools.length - aiCount) + '</b> ' + QAT.t('landing.metric.offline') + '</span>' +
+        '<span><b>' + aiCount + '</b> ' + QAT.t('hero.ai') + '</span>' +
+      '</div></div>';
 
     html += '<div class="filters">' +
       '<button class="chip' + (dashFilter === 'all' ? ' active' : '') + '" data-f="all">' +
