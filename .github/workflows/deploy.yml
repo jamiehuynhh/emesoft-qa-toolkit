@@ -1,0 +1,88 @@
+# =============================================================================
+#  Deploy the toolkit to GitHub Pages
+#  -----------------------------------------------------------------------------
+#  Runs the test suite first and refuses to publish if it fails, so a broken
+#  build never reaches the people using it.
+#
+#  One-time setup in the repository: Settings -> Pages -> Build and deployment
+#  -> Source: "GitHub Actions".
+#
+#  Note: only the 20 offline tools need this. The AI tools have no server here,
+#  so they fall back to "Copy prompt" or to a key entered in the browser.
+# =============================================================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # lets you re-deploy from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; keep the newest.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # No dependencies to install - the project has none.
+      - name: Run the self test
+        run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble the static site
+        run: |
+          mkdir -p _site
+          # everything the browser needs, and nothing else
+          cp index.html _site/
+          cp _headers _site/ 2>/dev/null || true
+          cp -r assets _site/
+          cp -r js _site/
+          # Jekyll would otherwise skip files starting with an underscore
+          touch _site/.nojekyll
+          # server code and secrets must never be published
+          test ! -e _site/server  || (echo "server/ leaked into the bundle" && exit 1)
+          test ! -e _site/.env    || (echo ".env leaked into the bundle" && exit 1)
+          test ! -e _site/scripts || (echo "scripts/ leaked into the bundle" && exit 1)
+          echo "Bundle contents:"
+          find _site -type f | sort
+          echo "Bundle size: $(du -sh _site | cut -f1)"
+
+      - name: Check every script tag resolves
+        run: |
+          # a missing file here means a blank page for every visitor
+          missing=0
+          grep -o 'src="[^"]*"' index.html | sed 's/src="//;s/"//' | while read -r f; do
+            case "$f" in http*) continue ;; esac
+            if [ ! -f "_site/$f" ]; then echo "MISSING: $f"; missing=1; fi
+          done
+          grep -o 'href="[^"]*\.css"' index.html | sed 's/href="//;s/"//' | while read -r f; do
+            if [ ! -f "_site/$f" ]; then echo "MISSING: $f"; missing=1; fi
+          done
+          test "$missing" -eq 0
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,29 @@
+{
+  "name": "ai-qa-toolkit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered tools for smarter and faster software testing — 21 QA/QC tools, client-side, with a Node.js server that keeps the Claude API key off the browser.",
+  "type": "module",
+  "main": "server/server.js",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "test": "node scripts/selftest.js",
+    "check": "node scripts/selftest.js",
+    "mock": "node scripts/mock-provider.js",
+    "probe": "node scripts/probe-providers.js"
+  },
+  "keywords": [
+    "qa",
+    "testing",
+    "toolkit",
+    "test-data",
+    "claude",
+    "anthropic"
+  ],
+  "author": "EmeSoft QA",
+  "license": "UNLICENSED"
+}

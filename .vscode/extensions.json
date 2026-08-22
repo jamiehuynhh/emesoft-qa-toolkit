@@ -1,0 +1,14 @@
+{
+  // VS Code offers these when the folder is opened. None of them are required
+  // to run the project — it has no build step and no dependencies.
+  "recommendations": [
+    "ms-vscode.live-server",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "rangav.vscode-thunder-client",
+    "christian-kohler.path-intellisense",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "unwantedRecommendations": []
+}

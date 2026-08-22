@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // F5 — start the toolkit server with the debugger attached.
+      "name": "Start toolkit server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/server.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "pattern": "URL        (https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      // Same, but restarts on every save (node --watch).
+      "name": "Start toolkit server (watch)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/server.js",
+      "runtimeArgs": ["--watch"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // Run the assertions in scripts/selftest.js with breakpoints available.
+      "name": "Run self test",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/selftest.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // Debug the front-end. Start the server first (or use the compound below).
+      "name": "Debug frontend in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8123/",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug frontend in Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8123/",
+      "webRoot": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      // Server + browser together, both debuggable.
+      "name": "Server + Chrome",
+      "configurations": ["Start toolkit server", "Debug frontend in Chrome"],
+      "stopAll": true
+    }
+  ]
+}

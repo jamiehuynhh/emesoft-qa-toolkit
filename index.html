@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI QA Toolkit — AI-powered Tools for Smarter and Faster Software Testing</title>
+<meta name="description" content="AI QA Toolkit: 20+ tools for QA/QC. Runs locally in your browser.">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23C8102E'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3EQ%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <a class="brand-mark" href="#/" data-nav>
+        <span class="logo">Q</span>
+        <span class="brand-text">
+          <strong>AI QA Toolkit</strong>
+          <small data-i18n="brand.tagline">Smarter software testing</small>
+        </span>
+      </a>
+      <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close menu">&times;</button>
+    </div>
+
+    <div class="side-search">
+      <input type="search" id="sideSearch" autocomplete="off" data-i18n-ph="search.side" placeholder="Filter tools...">
+    </div>
+
+    <nav class="side-nav" id="sideNav"><!-- built by JS --></nav>
+
+    <div class="side-foot">
+      <button class="ghost-btn full" id="btnAiSettings">
+        <span>&#9881;</span> <span data-i18n="ai.settings">AI Settings</span>
+      </button>
+      <p class="local-note" data-i18n="foot.local">Runs locally in your browser. No data is sent to a server.</p>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="btnMenu" aria-label="Menu">&#9776;</button>
+
+      <div class="crumbs" id="crumbs"></div>
+
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <span class="search-ico">&#128269;</span>
+          <input type="search" id="globalSearch" autocomplete="off" data-i18n-ph="search.global" placeholder="Search tools (Ctrl+K)">
+        </div>
+        <select id="langSelect" class="mini-select" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="vi">VI</option>
+        </select>
+        <button class="icon-btn" id="btnTheme" aria-label="Toggle theme"><span id="themeIcon">&#9789;</span></button>
+      </div>
+    </header>
+
+    <main class="content" id="view"></main>
+
+    <footer class="app-foot">
+      <span>AI QA Toolkit &middot; <span data-i18n="foot.built">Internal QA utilities</span></span>
+      <span class="dot">&middot;</span>
+      <span data-i18n="foot.privacy">Client-side only &mdash; your input never leaves this page (except AI tools you explicitly run).</span>
+    </footer>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+<!-- AI settings modal -->
+<div class="modal-wrap" id="aiModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+    <div class="modal-head">
+      <h3 id="aiModalTitle" data-i18n="ai.settings">AI Settings</h3>
+      <button class="icon-btn" id="aiModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="aiModalBody"></div>
+  </div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<!-- core -->
+<script src="js/core.js"></script>
+<script src="js/i18n.js"></script>
+<!-- libs -->
+<script src="js/lib/hash.js"></script>
+<script src="js/lib/diff.js"></script>
+<script src="js/lib/csv.js"></script>
+<script src="js/lib/sqlfmt.js"></script>
+<script src="js/lib/faker.js"></script>
+<script src="js/lib/scrub.js"></script>
+<script src="js/lib/har.js"></script>
+<script src="js/lib/aclint.js"></script>
+<script src="js/lib/vnvalid.js"></script>
+<script src="js/ai.js"></script>
+<!-- tools: text -->
+<script src="js/tools/text-compare.js"></script>
+<script src="js/tools/char-counter.js"></script>
+<script src="js/tools/case-converter.js"></script>
+<script src="js/tools/dedupe-lines.js"></script>
+<script src="js/tools/regex-tester.js"></script>
+<script src="js/tools/ac-linter.js"></script>
+<!-- tools: data -->
+<script src="js/tools/json-formatter.js"></script>
+<script src="js/tools/csv-json.js"></script>
+<script src="js/tools/sql-formatter.js"></script>
+<script src="js/tools/timestamp-converter.js"></script>
+<script src="js/tools/base64.js"></script>
+<script src="js/tools/url-codec.js"></script>
+<script src="js/tools/vn-validator.js"></script>
+<!-- tools: security & api -->
+<script src="js/tools/jwt-decoder.js"></script>
+<script src="js/tools/hash-generator.js"></script>
+<script src="js/tools/api-analyzer.js"></script>
+<script src="js/tools/har-analyzer.js"></script>
+<!-- tools: generators -->
+<script src="js/tools/uuid-generator.js"></script>
+<script src="js/tools/random-string.js"></script>
+<script src="js/tools/test-data-generator.js"></script>
+<!-- tools: AI -->
+<script src="js/tools/ai-testcase.js"></script>
+<script src="js/tools/ai-bug-report.js"></script>
+<script src="js/tools/ai-log-analyzer.js"></script>
+<script src="js/tools/ai-test-report.js"></script>
+<!-- boot -->
+<script src="js/boot.js"></script>
+</body>
+</html>

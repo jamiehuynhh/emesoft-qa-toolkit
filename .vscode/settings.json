@@ -1,0 +1,41 @@
+{
+  // ---- editor -------------------------------------------------------------
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [100],
+  "editor.formatOnSave": false,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.encoding": "utf8",
+
+  // ---- keep the tree readable --------------------------------------------
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.git": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, .env, .env.example, .editorconfig, .gitignore, jsconfig.json",
+    "index.html": "serve.bat, serve.ps1"
+  },
+
+  // ---- JavaScript ---------------------------------------------------------
+  "javascript.preferences.quoteStyle": "single",
+  "javascript.format.semicolons": "insert",
+  "javascript.suggest.completeFunctionCalls": false,
+  "js/ts.implicitProjectConfig.checkJs": false,
+
+  // ---- terminal -----------------------------------------------------------
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // ---- Live Preview / Live Server, if those extensions are installed ------
+  "livePreview.defaultPreviewPath": "/index.html",
+  "liveServer.settings.port": 8124,
+
+  // spell checker noise from Vietnamese strings is not useful here
+  "cSpell.enabled": false
+}
