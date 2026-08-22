@@ -326,6 +326,32 @@ const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const cssFlat = css.replace(/\s+/g, '');
 ok('app.css forces [hidden] to stay hidden',
    cssFlat.includes('[hidden]{display:none!important}'));
+
+// Third time a same-specificity display conflict has shipped. The close button
+// carries both .icon-btn (display:grid, declared later) and .sidebar-close
+// (display:none), so the unscoped hide rule lost on source order and the button
+// appeared on desktop, where clicking it does nothing.
+ok('the sidebar close button is hidden by a rule that outranks .icon-btn',
+   cssFlat.includes('.sidebar.sidebar-close{display:none'));
+ok('no unscoped .sidebar-close display rule is left to lose on source order',
+   !/(^|[},])\.sidebar-close\{display:/.test(cssFlat));
+ok('.icon-btn still sets display, so the scoping is what does the work',
+   /\.icon-btn\{[^}]*display:grid/.test(cssFlat));
+ok('the mobile rule is scoped the same way',
+   cssFlat.includes('.sidebar.sidebar-close{display:grid}'));
+
+// The brand block was laid out in a row: the logo needs ~176px of the 231px
+// available, leaving 16px for the product name, which then wrapped one character
+// per line and overflowed. Stacking is what makes it fit.
+ok('the brand stacks the logo above the name',
+   /\.brand-mark\{[^}]*flex-direction:column/.test(cssFlat));
+ok('the tagline is kept to one line with an ellipsis',
+   /\.brand-textsmall\{[^}]*white-space:nowrap/.test(cssFlat) &&
+   /\.brand-textsmall\{[^}]*text-overflow:ellipsis/.test(cssFlat));
+ok('the divider that only made sense in a row is gone',
+   !cssFlat.includes('brand-divider') && !html.includes('brand-divider'));
+ok('sidebar items expose the full name for the ones that ellipsis',
+   /nav-item[\s\S]{0,200}title="/.test(readFileSync(join(ROOT, 'js', 'core.js'), 'utf8')));
 ok('index.html does rely on the hidden attribute', /\shidden(\s|>)/.test(html));
 ok('the modal is hidden in markup', /id="aiModal"[^>]*\shidden/.test(html));
 // elements that carry `hidden` in markup must not also be forced visible

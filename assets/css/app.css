@@ -139,16 +139,32 @@ p{margin:0}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .content{flex:1;padding:22px 26px 40px;max-width:1360px;width:100%}
 
-/* ---------- brand ---------- */
-.brand{display:flex;align-items:center;gap:10px;padding:15px 16px 13px;border-bottom:1px solid var(--side-border)}
-.brand-mark{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+/* ---------- brand ----------
+   Stacked, not side by side. The sidebar gives 231px of usable width and the
+   logo alone needs ~176px of it; laid out in a row the product name was left
+   with 16px and wrapped one character per line, pushing the block to 115px tall
+   and overflowing its container. */
+.brand{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:15px 16px 14px;border-bottom:1px solid var(--side-border);
+}
+.brand-mark{display:flex;flex-direction:column;align-items:flex-start;gap:9px;flex:1;min-width:0}
 /* the real EmeSoft mark, white variant because the sidebar is dark */
-.brand-logo{height:26px;width:auto;display:block;flex:0 0 auto}
-.brand-text{display:flex;flex-direction:column;min-width:0}
-.brand-text strong{color:#fff;font-size:13px;font-weight:600;letter-spacing:.01em}
-.brand-text small{color:var(--side-text-dim);font-size:10.5px}
-.brand-divider{width:1px;height:24px;background:var(--side-border);flex:0 0 1px}
-.sidebar-close{display:none;color:var(--side-text)}
+.brand-logo{height:30px;width:auto;display:block;max-width:100%}
+.brand-text{display:flex;flex-direction:column;min-width:0;gap:1px}
+.brand-text strong{
+  color:#fff;font-size:13.5px;font-weight:600;letter-spacing:.01em;line-height:1.2;
+}
+.brand-text small{
+  color:var(--side-text-dim);font-size:10.5px;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+
+/* The button also carries .icon-btn, which sets display:grid at the SAME
+   specificity further down the file - so source order won and the close button
+   showed up on desktop, where the sidebar is not off-canvas and clicking it
+   does nothing. Scoping to .sidebar outranks it in both directions. */
+.sidebar .sidebar-close{display:none;color:var(--side-text);flex:0 0 32px}
 
 /* ==========================================================================
    Landing page
@@ -573,7 +589,7 @@ textarea.short{min-height:96px}
 @media (max-width:900px){
   .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .2s ease}
   .sidebar.open{transform:none}
-  .sidebar-close{display:grid}
+  .sidebar .sidebar-close{display:grid}
   .only-mobile{display:grid}
   .content{padding:16px}
   .topbar{padding:10px 16px}

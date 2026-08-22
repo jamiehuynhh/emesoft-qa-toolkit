@@ -335,7 +335,10 @@
       html += '<div class="nav-group"><span>' + QAT.esc(QAT.L(g.en, g.vi)) +
         '</span><span class="cnt">' + items.length + '</span></div>';
       items.forEach(function (t) {
-        html += '<a class="nav-item' + (t.id === cur ? ' active' : '') + '" href="#/t/' + t.id + '">' +
+        // title: long names ellipsis in a 264px sidebar - "Xử lý dòng (Lọc
+        // trùng / Sắp xếp)" is cut off with no way to read the rest otherwise
+        html += '<a class="nav-item' + (t.id === cur ? ' active' : '') + '" href="#/t/' + t.id +
+          '" title="' + QAT.esc(QAT.name(t)) + '">' +
           '<span class="ico">' + QAT.esc(t.icon) + '</span>' +
           '<span class="lbl">' + QAT.esc(QAT.name(t)) + '</span>' +
           (t.ai ? '<span class="ai-dot">AI</span>' : '') + '</a>';
