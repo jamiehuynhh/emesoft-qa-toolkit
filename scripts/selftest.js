@@ -10,10 +10,11 @@
    No dependencies, no test framework. Exit code 1 if anything fails.
    ========================================================================== */
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, rmSync, mkdirSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import { copyInto as buildCopyInto, verify as buildVerify } from './build.js';
 import {
   toOpenAIRequest, createStreamTranslator, openAIResponseToAnthropic,
   resolvePreset, PRESETS, retiredPresets
@@ -866,6 +867,44 @@ eq('cell content preserved', mdRows[1][2], '1. open 2. submit');
 ok('separator row dropped', !mdRows.some((r) => r.every((c) => /^[-: ]*$/.test(c))));
 eq('only the first table is taken', mdRows[2][0], 'TC-002');
 eq('no table returns nothing', QAT.mdTableToRows('just prose'), []);
+
+section('Deploy bundle guards');
+/* These guards decide whether a broken bundle reaches the public site, so each
+   one is tested by breaking the thing it watches. Two earlier CI guards looked
+   correct and silently passed a broken bundle; that must not be repeatable. */
+{
+  const tmp = resolve(ROOT, 'dist-selftest');
+  const bundle = () => { buildCopyInto(tmp); return tmp; };
+  const brokenBy = (mutate) => { const d = bundle(); mutate(d); return buildVerify(d); };
+  const reports = (problems, needle) => problems.some((x) => x.includes(needle));
+
+  ok('a clean bundle reports no problems', buildVerify(bundle()).length === 0);
+
+  ok('a font is reachable only through CSS url(), and its loss is caught',
+    reports(brokenBy((d) => rmSync(join(d, 'assets/fonts/montserrat-vietnamese.woff2'))),
+      'montserrat-vietnamese.woff2 is referenced by assets/css/app.css'));
+
+  ok('the favicon is an href rather than a stylesheet, and its loss is caught',
+    reports(brokenBy((d) => rmSync(join(d, 'assets/img/emesoft-mark.png'))),
+      'assets/img/emesoft-mark.png is referenced by index.html'));
+
+  ok('a missing tool script is caught',
+    reports(brokenBy((d) => rmSync(join(d, 'js/lib/har.js'))),
+      'js/lib/har.js is referenced by index.html'));
+
+  ok('a logo name that exists only as a JS concatenation is caught',
+    reports(brokenBy((d) => renameSync(join(d, 'assets/img/emesoft-logo-white.png'), join(d, 'assets/img/w.png'))),
+      'emesoft-logo-white.png is requested by js/core.js'));
+
+  ok('server code leaking into the bundle is caught',
+    reports(brokenBy((d) => mkdirSync(join(d, 'server'))), 'server leaked into the bundle'));
+
+  ok('a leaked .env is caught',
+    reports(brokenBy((d) => writeFileSync(join(d, '.env'), 'ANTHROPIC_API_KEY=sk-test')),
+      '.env leaked into the bundle'));
+
+  rmSync(tmp, { recursive: true, force: true });
+}
 
 /* ========================================================================= */
 console.log('\n  ' + '='.repeat(56));

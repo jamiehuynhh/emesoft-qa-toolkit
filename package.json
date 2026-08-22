@@ -11,6 +11,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
+    "build": "node scripts/build.js",
     "test": "node scripts/selftest.js",
     "check": "node scripts/selftest.js",
     "mock": "node scripts/mock-provider.js",

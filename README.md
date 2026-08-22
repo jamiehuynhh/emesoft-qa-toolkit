@@ -357,10 +357,11 @@ không có trong input.
 ## 9. Cấu trúc thư mục
 
 ```
-package.json             scripts: start / dev / test (không có dependency)
+package.json             scripts: start / dev / build / test (không có dependency)
 server/server.js         static server + proxy /api/ai + /api/health
 server/providers.js      adapter Claude dialect <-> OpenAI dialect
 server/security.js       headers, auth, rate limit, audit log
+scripts/build.js         npm run build — ghép dist/, chặn rò rỉ + asset thiếu
 scripts/selftest.js      npm test — nạp chính code browser rồi assert
 scripts/mock-provider.js npm run mock — provider giả để test luồng AI
 scripts/probe-providers.js npm run probe — endpoint nào tới được
@@ -438,25 +439,50 @@ Helper dùng được: `QAT.panel()`, `QAT.status(el)`, `QAT.copy()`, `QAT.downl
 ### Static host — cách được cấu hình sẵn
 
 20/24 công cụ không cần server gì cả, nên static host là đủ và an toàn nhất:
-không có server để bị tấn công, không có API key để rò rỉ. Bundle chỉ **448 KB / 41 file**.
+không có server để bị tấn công, không có API key để rò rỉ. Bundle chỉ **580 KB / 47 file**.
 
-**GitHub Pages** — workflow đã có sẵn tại [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
+#### Ghép bundle ở máy
+
+```bash
+npm run build
+```
+
+Ra thư mục `dist/`: chỉ `index.html`, `assets/`, `js/`, `_headers`, `.nojekyll`.
+[scripts/build.js](scripts/build.js) sẽ **fail** nếu `server/`, `scripts/`, `.env` hoặc
+`logs/` lọt vào bundle, hoặc nếu trang tham chiếu tới một file không có trong bundle —
+tính cả font nằm trong `url()` của CSS và hai file logo mà `js/core.js` ghép bằng chuỗi
+(`'assets/img/' + tên`), là những chỗ mà một guard chỉ đọc `src="..."` sẽ bỏ sót.
+Cả 6 guard này đều có test riêng trong `npm test`, mỗi test phá đúng thứ mà guard đó canh.
+
+CI chạy **chính script này** (`npm run build -- --out _site`), nên bundle ở máy và bundle
+được publish là một.
+
+#### GitHub Pages
+
+Workflow đã có sẵn tại [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
 
 ```bash
 git remote add origin https://github.com/<user>/<repo>.git
 git push -u origin main
 ```
 
-Rồi vào **Settings → Pages → Source: GitHub Actions**. Mỗi lần push lên `main` sẽ:
-chạy `npm test` trước (fail thì **không** deploy), ghép bundle, kiểm tra mọi thẻ `<script>`
-và `<link>` đều resolve được, xác nhận `server/`, `scripts/`, `.env` không lọt vào bundle,
-rồi publish.
+Rồi vào **Settings → Pages → Source: GitHub Actions**. Mỗi lần push lên `main`: chạy
+`npm test` trước (fail thì **không** deploy), rồi `npm run build` (fail thì cũng không
+deploy), rồi publish.
 
-**Netlify / Cloudflare Pages** — không cần build command, publish directory là gốc repo.
-Hai host này đọc file [_headers](_headers) nên **giữ được toàn bộ security header** (CSP,
-X-Frame-Options, HSTS…) giống như khi chạy Node server.
+Pages serve ở subpath `https://<user>.github.io/<repo>/`. Toolkit dùng đường dẫn tương đối
+và `js/ai.js` suy ra API base từ chính `src` của nó, nên subpath hoạt động không cần sửa gì.
 
-⚠️ **GitHub Pages không hỗ trợ custom header.** Nếu deploy lên Pages thì mất CSP,
+#### Netlify / Cloudflare Pages
+
+Build command `npm run build`, publish directory `dist`. Hai host này đọc file
+[_headers](_headers) nên **giữ được toàn bộ security header** (CSP, X-Frame-Options,
+HSTS…) giống như khi chạy Node server.
+
+Không muốn nối repo: chạy `npm run build` rồi kéo thả thư mục `dist/` vào
+[app.netlify.com/drop](https://app.netlify.com/drop).
+
+⚠️ **GitHub Pages không hỗ trợ custom header.** Deploy lên Pages là mất CSP,
 X-Frame-Options, Referrer-Policy và HSTS. Với tool nội bộ thì thường chấp nhận được, nhưng
 cần biết. Muốn giữ header thì chọn Netlify hoặc Cloudflare Pages.
 

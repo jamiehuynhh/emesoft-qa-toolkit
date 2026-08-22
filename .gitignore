@@ -18,6 +18,8 @@ Thumbs.db
 
 # build / temp output
 dist/
+dist-selftest/
+_site/
 tmp/
 *.log
 
