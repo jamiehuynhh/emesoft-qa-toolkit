@@ -50,6 +50,9 @@ define('localStorage', {
 }, { force: true });
 define('document', {
   documentElement: { lang: 'en', setAttribute() {}, style: {} },
+  // a real document always has this; scripts derive their own base from it
+  baseURI: 'http://localhost/',
+  currentScript: null,
   querySelector: () => null,
   querySelectorAll: () => [],
   getElementById: () => null,

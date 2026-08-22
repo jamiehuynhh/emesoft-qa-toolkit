@@ -18,7 +18,21 @@
 (function () {
   'use strict';
 
-  var SERVER_PATH = '/api/ai';
+  /* Resolve the API against wherever this script was loaded from, not against
+     the site root. An absolute "/api/ai" breaks the moment the toolkit lives at
+     a subpath — behind a reverse proxy at /qa-toolkit/, or on GitHub Pages at
+     /<repo>/ — because it would call the wrong host root. Deriving the base
+     from our own <script> tag is correct in every layout. */
+  var API_BASE = (function () {
+    var s = document.currentScript || document.querySelector('script[src$="js/ai.js"]');
+    if (s && s.src) return s.src.replace(/js\/ai\.js(\?.*)?$/, '');
+    // Falls here under a test harness or an inlined build. An empty base still
+    // yields a working relative path, so never let this throw.
+    try { return new URL('.', document.baseURI).href; } catch (e) { return ''; }
+  })();
+
+  var SERVER_PATH = API_BASE + 'api/ai';
+  var HEALTH_PATH = API_BASE + 'api/health';
 
   var DEFAULTS = {
     provider: 'anthropic',
@@ -95,7 +109,7 @@
   };
 
   ai.probe = function () {
-    return fetch('/api/health', { method: 'GET' })
+    return fetch(HEALTH_PATH, { method: 'GET' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
         ai.server = {
