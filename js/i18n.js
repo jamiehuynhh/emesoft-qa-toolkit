@@ -79,6 +79,7 @@ window.QAT_I18N = {
     'landing.foot': 'Internal QA tooling · processed in your browser',
     'foot.local': 'Runs locally in your browser. Nothing is uploaded to a server.',
     'foot.built': 'Internal QA utilities',
+    'foot.team': 'Implemented by team',
     'foot.privacy': 'Client-side only — your input never leaves this page (except AI tools you explicitly run).',
     'badge.local': 'LOCAL',
 
@@ -176,6 +177,7 @@ window.QAT_I18N = {
     'landing.foot': 'Công cụ QA nội bộ · xử lý trong trình duyệt của bạn',
     'foot.local': 'Chạy trực tiếp trên trình duyệt. Không gửi dữ liệu lên máy chủ.',
     'foot.built': 'Công cụ nội bộ cho QA',
+    'foot.team': 'Thực hiện bởi team',
     'foot.privacy': 'Xử lý hoàn toàn tại trình duyệt — dữ liệu bạn nhập không rời khỏi trang này (trừ các công cụ AI khi bạn chủ động chạy).',
     'badge.local': 'CỤC BỘ',
 

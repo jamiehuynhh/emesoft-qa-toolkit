@@ -8,6 +8,8 @@
 
   var QAT = window.QAT = {
     version: '1.0.0',
+    // Credited in both footers. Kept in one place so the two never drift apart.
+    TEAM: 'Next Orchestrated AI',
     tools: [],
     byId: {},
     lang: 'en',
@@ -525,6 +527,8 @@
         '<img src="assets/img/emesoft-logo-white.png" alt="EmeSoft">' +
         '<span>' + T('landing.foot') + '</span>' +
         '<span class="spacer"></span>' +
+        '<span class="lp-foot-team">' + T('foot.team') +
+          ' <b>' + QAT.TEAM + '</b></span>' +
         '<a href="https://www.emesoft.net/" target="_blank" rel="noopener noreferrer">emesoft.net</a>' +
       '</div></footer>';
 

@@ -628,3 +628,12 @@ textarea.short{min-height:96px}
   .lp-nav-links .only-wide{display:none}
   .lp-logo{height:28px}
 }
+
+/* ---------- team credit in both footers -------------------------------------- */
+.app-foot-team{margin-left:auto;color:var(--text-3)}
+.app-foot-team b{color:var(--text-2);font-weight:600}
+.lp-foot-team{color:rgba(255,255,255,.55)}
+.lp-foot-team b{color:rgba(255,255,255,.9);font-weight:600}
+@media (max-width:640px){
+  .app-foot-team{margin-left:0}
+}

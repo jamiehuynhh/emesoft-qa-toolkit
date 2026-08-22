@@ -16,6 +16,11 @@
   if (langSel) langSel.value = QAT.lang;
   QAT.applyStaticI18n();
 
+  // The static footer has the team name in the markup as a fallback; take it
+  // from QAT.TEAM so it can never drift from the one the landing footer renders.
+  var footTeam = document.getElementById('footTeam');
+  if (footTeam) footTeam.textContent = QAT.TEAM;
+
   // ---- chrome ----------------------------------------------------------
   document.getElementById('btnTheme').addEventListener('click', function () {
     QAT.setTheme(QAT.theme === 'dark' ? 'light' : 'dark');

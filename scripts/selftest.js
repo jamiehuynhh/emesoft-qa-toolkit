@@ -296,6 +296,26 @@ ok('an empty hash is the landing page', (function () {
   return typeof QAT.renderLanding === 'function' && typeof QAT.renderDashboard === 'function';
 })());
 
+section('Team credit in both footers');
+const idx = readFileSync(join(ROOT, 'index.html'), 'utf8');
+eq('the team name has one source of truth', QAT.TEAM, 'Next Orchestrated AI');
+ok('landing footer credits the team', lpDark.includes(QAT.TEAM));
+ok('landing footer uses the translated label',
+   lpDark.includes(QAT.t('foot.team')));
+ok('app footer markup carries the credit', /data-i18n="foot\.team"/.test(idx));
+ok('app footer has the element boot fills from QAT.TEAM', /id="footTeam"/.test(idx));
+ok('the markup fallback matches the constant',
+   new RegExp('id="footTeam">\\s*' + QAT.TEAM).test(idx));
+ok('boot overwrites the static name from the constant',
+   /footTeam[\s\S]{0,120}QAT\.TEAM/.test(readFileSync(join(ROOT, 'js', 'boot.js'), 'utf8')));
+ok('the label is translated in both languages', (() => {
+  const en = (globalThis.QAT_I18N.en || {})['foot.team'];
+  const vi = (globalThis.QAT_I18N.vi || {})['foot.team'];
+  return Boolean(en) && Boolean(vi) && en !== vi;
+})());
+// the credit is a name, not a sentence that would need re-translating per locale
+ok('the team name is not translated', !JSON.stringify(globalThis.QAT_I18N).includes('Next Orchestrated'));
+
 section('Stylesheet guards');
 // A UA stylesheet only sets [hidden]{display:none} at the weakest priority, so
 // any author rule that sets display (.modal-wrap{display:grid},
