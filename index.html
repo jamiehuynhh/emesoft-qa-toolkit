@@ -43,33 +43,39 @@
   <!-- ============ MAIN ============ -->
   <div class="main">
     <header class="topbar">
-      <button class="icon-btn only-mobile" id="btnMenu" aria-label="Menu">&#9776;</button>
+      <!-- inner wrapper so the bar spans the window but its contents line up
+           with the content column below it -->
+      <div class="topbar-in">
+        <button class="icon-btn only-mobile" id="btnMenu" aria-label="Menu">&#9776;</button>
 
-      <div class="crumbs" id="crumbs"></div>
+        <div class="crumbs" id="crumbs"></div>
 
-      <div class="topbar-right">
-        <div class="search-wrap">
-          <span class="search-ico">&#128269;</span>
-          <input type="search" id="globalSearch" autocomplete="off" data-i18n-ph="search.global" placeholder="Search tools (Ctrl+K)">
+        <div class="topbar-right">
+          <div class="search-wrap">
+            <span class="search-ico">&#128269;</span>
+            <input type="search" id="globalSearch" autocomplete="off" data-i18n-ph="search.global" placeholder="Search tools (Ctrl+K)">
+          </div>
+          <select id="langSelect" class="mini-select" aria-label="Language">
+            <option value="en">EN</option>
+            <option value="vi">VI</option>
+          </select>
+          <button class="icon-btn" id="btnTheme" aria-label="Toggle theme"><span id="themeIcon">&#9789;</span></button>
         </div>
-        <select id="langSelect" class="mini-select" aria-label="Language">
-          <option value="en">EN</option>
-          <option value="vi">VI</option>
-        </select>
-        <button class="icon-btn" id="btnTheme" aria-label="Toggle theme"><span id="themeIcon">&#9789;</span></button>
       </div>
     </header>
 
     <main class="content" id="view"></main>
 
     <footer class="app-foot">
-      <span>EmeSoft QA Toolkit &middot; <span data-i18n="foot.built">Internal QA utilities</span></span>
-      <span class="dot">&middot;</span>
-      <span data-i18n="foot.privacy">Client-side only &mdash; your input never leaves this page (except AI tools you explicitly run).</span>
-      <span class="app-foot-team">
-        <span data-i18n="foot.team">Implemented by team</span>
-        <b id="footTeam">Next Orchestrated AI</b>
-      </span>
+      <div class="app-foot-in">
+        <span>EmeSoft QA Toolkit &middot; <span data-i18n="foot.built">Internal QA utilities</span></span>
+        <span class="dot">&middot;</span>
+        <span data-i18n="foot.privacy">Client-side only &mdash; your input never leaves this page (except AI tools you explicitly run).</span>
+        <span class="app-foot-team">
+          <span data-i18n="foot.team">Implemented by team</span>
+          <b id="footTeam">Next Orchestrated AI</b>
+        </span>
+      </div>
     </footer>
   </div>
 </div>

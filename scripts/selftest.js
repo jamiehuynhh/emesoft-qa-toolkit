@@ -352,6 +352,28 @@ ok('the divider that only made sense in a row is gone',
    !cssFlat.includes('brand-divider') && !html.includes('brand-divider'));
 ok('sidebar items expose the full name for the ones that ellipsis',
    /nav-item[\s\S]{0,200}title="/.test(readFileSync(join(ROOT, 'js', 'core.js'), 'utf8')));
+
+// The content column is capped so textareas do not stretch to 1600px, but with
+// margin:0 the cap sat flush left and left a 281px dead strip on the right at
+// 1920px, while the topbar still spanned the full width so the two did not line
+// up. All three regions must share one width and be centred.
+ok('there is a single shared content width token', cssFlat.includes('--content-max:'));
+ok('the content column is centred, not flush left',
+   /\.content\{[^}]*margin-inline:auto/.test(cssFlat));
+ok('the content column uses the shared token',
+   /\.content\{[^}]*max-width:var\(--content-max\)/.test(cssFlat));
+ok('the topbar contents use the same width',
+   /\.topbar-in\{[^}]*max-width:var\(--content-max\)/.test(cssFlat) &&
+   /\.topbar-in\{[^}]*margin:0auto/.test(cssFlat));
+ok('the footer contents use the same width',
+   /\.app-foot-in\{[^}]*max-width:var\(--content-max\)/.test(cssFlat) &&
+   /\.app-foot-in\{[^}]*margin:0auto/.test(cssFlat));
+ok('no hardcoded old cap is left behind', !cssFlat.includes('max-width:1360px'));
+ok('the markup has the wrappers those rules need',
+   /class="topbar-in"/.test(html) && /class="app-foot-in"/.test(html));
+// the bar itself must still span the window, so its border reaches both edges
+ok('the topbar bar itself is not width-capped',
+   !/\.topbar\{[^}]*max-width/.test(cssFlat));
 ok('index.html does rely on the hidden attribute', /\shidden(\s|>)/.test(html));
 ok('the modal is hidden in markup', /id="aiModal"[^>]*\shidden/.test(html));
 // elements that carry `hidden` in markup must not also be forced visible

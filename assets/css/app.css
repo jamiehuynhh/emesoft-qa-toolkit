@@ -84,6 +84,9 @@
   --sh-2:0 4px 14px rgba(16,24,40,.08);
   --sh-3:0 12px 32px rgba(16,24,40,.14);
   --side-w:264px;
+  /* one width shared by the content column, the topbar and the footer, so the
+     three always line up */
+  --content-max:1440px;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   --sans:'Montserrat',"Segoe UI",Roboto,-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
 }
@@ -137,7 +140,16 @@ p{margin:0}
   position:sticky;top:0;height:100vh;z-index:40;
 }
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-.content{flex:1;padding:22px 26px 40px;max-width:1360px;width:100%}
+
+/* The column is capped so textareas and prose do not stretch to 1600px, but the
+   cap used to sit flush against the left edge with margin:0 - on a 1920 screen
+   that left a 281px dead strip on the right while the topbar still spanned the
+   full width, so the bar and the content below it did not line up. Centring the
+   column and giving the bar and footer the same width fixes both. */
+.content{
+  flex:1;padding:22px 26px 40px;
+  max-width:var(--content-max);width:100%;margin-inline:auto;
+}
 
 /* ---------- brand ----------
    Stacked, not side by side. The sidebar gives 231px of usable width and the
@@ -347,9 +359,13 @@ body.is-landing .app{display:block}
 
 /* ---------- topbar ---------- */
 .topbar{
-  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
-  padding:11px 26px;background:var(--surface);
+  position:sticky;top:0;z-index:30;background:var(--surface);
   border-bottom:1px solid var(--border);
+}
+/* bar spans the window; its contents share the content column's width */
+.topbar-in{
+  max-width:var(--content-max);margin:0 auto;padding:11px 26px;
+  display:flex;align-items:center;gap:14px;
 }
 .crumbs{flex:1;min-width:0;font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:7px;overflow:hidden}
 .crumbs b{color:var(--text);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -374,9 +390,10 @@ body.is-landing .app{display:block}
 .icon-btn:hover{border-color:var(--brand);color:var(--brand)}
 .only-mobile{display:none}
 
-.app-foot{
-  padding:14px 26px 20px;color:var(--text-3);font-size:11.5px;
-  display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);
+.app-foot{color:var(--text-3);font-size:11.5px;border-top:1px solid var(--border)}
+.app-foot-in{
+  max-width:var(--content-max);margin:0 auto;padding:14px 26px 20px;
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
 }
 .app-foot .dot{opacity:.5}
 
@@ -592,8 +609,8 @@ textarea.short{min-height:96px}
   .sidebar .sidebar-close{display:grid}
   .only-mobile{display:grid}
   .content{padding:16px}
-  .topbar{padding:10px 16px}
-  .app-foot{padding:12px 16px 18px}
+  .topbar-in{padding:10px 16px}
+  .app-foot-in{padding:12px 16px 18px}
   .split,.split-3{grid-template-columns:1fr}
   .search-wrap input{width:150px}
   .hero{padding:20px}
