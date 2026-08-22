@@ -400,20 +400,54 @@ Helper dùng được: `QAT.panel()`, `QAT.status(el)`, `QAT.copy()`, `QAT.downl
 
 ## 11. Deploy
 
-**Có Node ở server** (khuyến nghị — có proxy AI):
+### Static host — cách được cấu hình sẵn
+
+20/24 công cụ không cần server gì cả, nên static host là đủ và an toàn nhất:
+không có server để bị tấn công, không có API key để rò rỉ. Bundle chỉ **448 KB / 41 file**.
+
+**GitHub Pages** — workflow đã có sẵn tại [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
+
+```bash
+git remote add origin https://github.com/<user>/<repo>.git
+git push -u origin main
+```
+
+Rồi vào **Settings → Pages → Source: GitHub Actions**. Mỗi lần push lên `main` sẽ:
+chạy `npm test` trước (fail thì **không** deploy), ghép bundle, kiểm tra mọi thẻ `<script>`
+và `<link>` đều resolve được, xác nhận `server/`, `scripts/`, `.env` không lọt vào bundle,
+rồi publish.
+
+**Netlify / Cloudflare Pages** — không cần build command, publish directory là gốc repo.
+Hai host này đọc file [_headers](_headers) nên **giữ được toàn bộ security header** (CSP,
+X-Frame-Options, HSTS…) giống như khi chạy Node server.
+
+⚠️ **GitHub Pages không hỗ trợ custom header.** Nếu deploy lên Pages thì mất CSP,
+X-Frame-Options, Referrer-Policy và HSTS. Với tool nội bộ thì thường chấp nhận được, nhưng
+cần biết. Muốn giữ header thì chọn Netlify hoặc Cloudflare Pages.
+
+**Các công cụ AI trên static host:** không có `/api/ai`, nên toolkit sẽ báo đúng lý do
+("địa chỉ này serve được file nhưng không có endpoint /api/ai"). Hai cách dùng:
+nút **Copy prompt** (không cần key gì) hoặc chế độ **Direct** với key free cá nhân.
+Nếu dùng Direct với provider ngoài Anthropic, thêm host đó vào `connect-src` trong `_headers`.
+
+### Có Node ở server (nếu sau này cần proxy AI)
 
 ```bash
 set HOST=0.0.0.0
-set PORT=8123
+set AUTH_TOKEN=<chuỗi random dài>
+set BEHIND_HTTPS=true
 npm start
 ```
 
-Đặt sau reverse proxy (IIS ARR / Nginx) có TLS và auth. Với PM2:
-`pm2 start server/server.js --name qa-toolkit`.
+Server **từ chối khởi động** nếu `HOST` không phải loopback mà thiếu `AUTH_TOKEN` — đó là
+có chủ đích, không phải lỗi. Đặt sau reverse proxy (IIS ARR / Nginx) có TLS.
+Với PM2: `pm2 start server/server.js --name qa-toolkit`.
 
-**Static host** (GitHub Pages / Netlify / IIS tĩnh): copy mọi thứ trừ `server/`, `scripts/`, `.env`.
-Không có build command. Khi đó không có proxy → dùng chế độ **Custom** trỏ tới endpoint AI riêng
-của bạn, hoặc bỏ hẳn 4 công cụ AI.
+Sinh token:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 ---
 
