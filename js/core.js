@@ -301,6 +301,13 @@
     var ico = document.getElementById('themeIcon');
     if (ico) ico.innerHTML = theme === 'dark' ? '&#9788;' : '&#9789;';
     QAT.store.set('theme', theme);
+
+    // The landing page picks a logo file per theme, so it has to be repainted.
+    // Guarded on the nav already existing: at boot setTheme runs before the
+    // first route, and rendering then would just be thrown away.
+    if (QAT.isLanding && QAT.isLanding() && document.querySelector('.lp-nav')) {
+      QAT.renderLanding(document.getElementById('view'));
+    }
   };
 
   QAT.setLang = function (lang) {
@@ -435,13 +442,25 @@
 
     view.innerHTML =
       '<nav class="lp-nav"><div class="lp-nav-in">' +
-        '<img src="assets/img/emesoft-logo.png" alt="EmeSoft" width="164" height="34">' +
+        // The colour logo is 100% dark pixels - it is drawn for white paper and
+        // all but disappears on the dark nav. Pick the variant that matches the
+        // theme rather than loading both and hiding one.
+        '<img src="assets/img/' +
+          (QAT.theme === 'dark' ? 'emesoft-logo-white.png' : 'emesoft-logo.png') +
+          '" alt="EmeSoft" class="lp-logo">' +
         '<span class="lp-nav-sep"></span>' +
         '<span class="lp-nav-name">QA Toolkit</span>' +
         '<span class="lp-nav-links">' +
           '<a href="#/tools">' + T('landing.nav.tools') + '</a>' +
-          '<a href="#landing-how">' + T('landing.nav.how') + '</a>' +
-          '<a href="https://www.emesoft.net/" target="_blank" rel="noopener noreferrer">emesoft.net</a>' +
+          '<a class="only-wide" href="#landing-how">' + T('landing.nav.how') + '</a>' +
+          '<a class="only-wide" href="https://www.emesoft.net/" target="_blank" rel="noopener noreferrer">emesoft.net</a>' +
+          // These live in the topbar everywhere else, and the topbar is hidden
+          // here - so without them a visitor on the landing page cannot switch
+          // theme or language at all.
+          '<button class="lp-icon-btn" id="lpLang" title="' + QAT.esc(T('landing.langTitle')) + '">' +
+            (QAT.lang === 'vi' ? 'VI' : 'EN') + '</button>' +
+          '<button class="lp-icon-btn" id="lpTheme" title="' + QAT.esc(T('landing.themeTitle')) + '">' +
+            (QAT.theme === 'dark' ? '&#9788;' : '&#9789;') + '</button>' +
         '</span>' +
       '</div></nav>' +
 
@@ -516,6 +535,16 @@
         var el = document.getElementById(this.getAttribute('href').slice(1));
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
+    });
+
+    var tb = view.querySelector('#lpTheme');
+    if (tb) tb.addEventListener('click', function () {
+      // setTheme repaints the landing, which is what swaps the logo variant
+      QAT.setTheme(QAT.theme === 'dark' ? 'light' : 'dark');
+    });
+    var lb = view.querySelector('#lpLang');
+    if (lb) lb.addEventListener('click', function () {
+      QAT.setLang(QAT.lang === 'vi' ? 'en' : 'vi');
     });
   };
 

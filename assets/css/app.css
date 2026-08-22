@@ -170,7 +170,6 @@ body.is-landing .app{display:block}
   max-width:1180px;margin:0 auto;padding:14px 26px;
   display:flex;align-items:center;gap:18px;
 }
-.lp-nav img{height:34px;width:auto;display:block}
 .lp-nav-sep{width:1px;height:26px;background:var(--border)}
 .lp-nav-name{font-weight:600;font-size:15px;letter-spacing:-.01em}
 .lp-nav-links{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -606,3 +605,26 @@ textarea.short{min-height:96px}
   text-transform:none;letter-spacing:-.02em;
 }
 @media (max-width:640px){ .dash-counts{margin-left:0} }
+
+/* ---------- landing: theme + language controls -------------------------------
+   The topbar carries these everywhere else, and body.is-landing hides it, so
+   without these two buttons a visitor on the landing page has no way to switch
+   theme or language at all. */
+.lp-icon-btn{
+  border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);
+  min-width:34px;height:34px;padding:0 9px;border-radius:var(--r-sm);cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:600;line-height:1;
+  display:inline-grid;place-items:center;
+}
+.lp-icon-btn:hover{border-color:var(--brand);color:var(--brand)}
+.lp-nav-links{gap:6px}
+
+/* The logo file is swapped per theme in renderLanding, not hidden with CSS, so
+   only the variant actually in use is downloaded. Height is fixed here because
+   the two files have different intrinsic sizes (768x158 vs 2524x430). */
+.lp-logo{height:34px;width:auto;display:block;flex:0 0 auto}
+
+@media (max-width:700px){
+  .lp-nav-links .only-wide{display:none}
+  .lp-logo{height:28px}
+}

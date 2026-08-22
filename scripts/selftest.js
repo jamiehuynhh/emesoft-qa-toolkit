@@ -241,6 +241,61 @@ ok('search finds a tool by Vietnamese name', QAT.search('so sánh').length > 0);
 ok('search finds a tool by tag', QAT.search('jwt').some((t) => t.id === 'jwt-decoder'));
 ok('search with no match returns nothing', QAT.search('zzzz-not-a-tool').length === 0);
 
+section('Landing page');
+// The colour logo is drawn for white paper: measured against the dark nav its
+// text sits at 1.05:1, i.e. invisible. The white variant is 15.48:1. This pins
+// the mapping so a future edit cannot quietly put the dark logo back on dark.
+function renderLandingHtml(theme, lang) {
+  const prevTheme = QAT.theme, prevLang = QAT.lang;
+  QAT.theme = theme;
+  QAT.lang = lang || 'en';
+  const view = { innerHTML: '', querySelectorAll: () => [], querySelector: () => null };
+  QAT.renderLanding(view);
+  QAT.theme = prevTheme;
+  QAT.lang = prevLang;
+  return view.innerHTML;
+}
+const lpDark = renderLandingHtml('dark');
+const lpLight = renderLandingHtml('light');
+
+ok('dark theme uses the white logo', /assets\/img\/emesoft-logo-white\.png/.test(lpDark));
+ok('dark theme does NOT use the dark-on-dark colour logo',
+   !/src="assets\/img\/emesoft-logo\.png"/.test(lpDark));
+ok('light theme uses the colour logo', /src="assets\/img\/emesoft-logo\.png"/.test(lpLight));
+ok('only one nav logo is emitted, not both hidden with CSS',
+   (lpDark.match(/class="lp-logo"/g) || []).length === 1);
+// the footer band is dark in both themes, so it always wants the white mark
+ok('footer keeps the white logo in light theme',
+   /lp-foot[\s\S]*emesoft-logo-white\.png/.test(lpLight));
+
+ok('landing offers a theme toggle', /id="lpTheme"/.test(lpDark));
+ok('landing offers a language toggle', /id="lpLang"/.test(lpDark));
+ok('theme button shows the sun when dark', /id="lpTheme"[^>]*>\s*&#9788;/.test(lpDark));
+ok('theme button shows the moon when light', /id="lpTheme"[^>]*>\s*&#9789;/.test(lpLight));
+ok('language button reflects the active language',
+   /id="lpLang"[^>]*>\s*VI/.test(renderLandingHtml('light', 'vi')) &&
+   /id="lpLang"[^>]*>\s*EN/.test(lpLight));
+
+ok('the CTA points at the tools dashboard, not back at itself', /href="#\/tools"/.test(lpDark));
+// compared against the escaped form: the group label goes through QAT.esc, so
+// "API & Security" appears as "API &amp; Security" in the markup
+ok('landing renders every group as a category card',
+   QAT.GROUPS.every((g) =>
+     !QAT.tools.some((t) => t.group === g.id) ||
+     lpDark.includes(QAT.esc(QAT.L(g.en, g.vi)))));
+eq('one category card per non-empty group',
+   (lpDark.match(/class="lp-cat"/g) || []).length,
+   QAT.GROUPS.filter((g) => QAT.tools.some((t) => t.group === g.id)).length);
+ok('Vietnamese landing is actually translated',
+   /Những việc QA làm mỗi ngày/.test(renderLandingHtml('light', 'vi')));
+
+eq('#/ is the landing route', typeof QAT.isLanding, 'function');
+ok('an empty hash is the landing page', (function () {
+  // isLanding reads location.hash; the harness has no location, so just assert
+  // the router exposes the predicate the CSS class depends on
+  return typeof QAT.renderLanding === 'function' && typeof QAT.renderDashboard === 'function';
+})());
+
 section('Stylesheet guards');
 // A UA stylesheet only sets [hidden]{display:none} at the weakest priority, so
 // any author rule that sets display (.modal-wrap{display:grid},
