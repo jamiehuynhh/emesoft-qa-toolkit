@@ -357,11 +357,13 @@ không có trong input.
 ## 9. Cấu trúc thư mục
 
 ```
-package.json             scripts: start / dev / build / test (không có dependency)
+package.json             scripts: start / dev / build / build:single / test
 server/server.js         static server + proxy /api/ai + /api/health
 server/providers.js      adapter Claude dialect <-> OpenAI dialect
 server/security.js       headers, auth, rate limit, audit log
 scripts/build.js         npm run build — ghép dist/, chặn rò rỉ + asset thiếu
+scripts/bundle-single.js npm run build:single — gói tất cả vào 1 file HTML
+scripts/artifact-adapter.js  chỉ vào bản 1-file: tải file trong artifact viewer
 scripts/selftest.js      npm test — nạp chính code browser rồi assert
 scripts/mock-provider.js npm run mock — provider giả để test luồng AI
 scripts/probe-providers.js npm run probe — endpoint nào tới được
@@ -456,6 +458,36 @@ Cả 6 guard này đều có test riêng trong `npm test`, mỗi test phá đún
 
 CI chạy **chính script này** (`npm run build -- --out _site`), nên bundle ở máy và bundle
 được publish là một.
+
+#### Một file duy nhất
+
+```bash
+npm run build:single
+```
+
+Ra `dist-single/qa-toolkit.html` — **một file ~800 KB, không có thư mục nào bên cạnh**.
+CSS, cả 33 script, 3 font Montserrat và 3 file logo đều nhúng thành data URI. Mở trực tiếp
+bằng `file://`, copy vào USB, gửi qua mail, hay đưa lên host chỉ nhận một trang — đều chạy.
+
+Không nằm trong `dist/` là có lý do: `npm run build` xoá sạch thư mục đó.
+
+Hai chỗ đã từng làm hỏng bản này, giờ mỗi chỗ có test riêng:
+
+- Tool Random String có chuỗi thử XSS `'<script>alert(1)</script>'`. HTML parser đóng
+  inline script ở `</script` **đầu tiên**, kể cả khi nó nằm trong string JS — nên bundle bị
+  cắt giữa file, `boot.js` không chạy, trang trắng. Bộ đóng gói đổi thành `<\/script`
+  (JS đọc y nguyên, parser không thấy) và guard bắt buộc file chỉ có **đúng một** thẻ đóng,
+  nằm ở cuối.
+- `js/core.js` chọn logo bằng `'assets/img/' + tên`, không có full path nào để thay. Tiền tố
+  và hai tên file được thay riêng, dài trước ngắn sau.
+
+**Nút tải file:** 11 tool gọi `QAT.download()`, vốn tạo Blob rồi click `<a download>`. Cách
+đó đúng với mọi host thường và với `file://`. Riêng trong artifact viewer của claude.ai thì
+trang không được cấp quyền tải, nên [scripts/artifact-adapter.js](scripts/artifact-adapter.js)
+trỏ `QAT.download` sang `claude.downloads.save()` khi phát hiện runtime đó — và **không làm
+gì cả** khi không có. `.txt`/`.json` được nhận trực tiếp; `.csv` và `.sql` không nằm trong
+allowlist nên bị lưu lại thành `.csv.txt` / `.sql.txt` (8 trong 14 chỗ gọi đi đường này).
+File adapter nằm ở `scripts/` nên `build.js` không bao giờ đưa nó vào bundle tĩnh.
 
 #### GitHub Pages
 

@@ -19,6 +19,7 @@ Thumbs.db
 # build / temp output
 dist/
 dist-selftest/
+dist-single/
 _site/
 *.zip
 tmp/

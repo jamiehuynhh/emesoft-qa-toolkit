@@ -12,6 +12,7 @@
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
     "build": "node scripts/build.js",
+    "build:single": "node scripts/bundle-single.js",
     "test": "node scripts/selftest.js",
     "check": "node scripts/selftest.js",
     "mock": "node scripts/mock-provider.js",

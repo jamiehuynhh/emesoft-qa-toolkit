@@ -15,6 +15,7 @@ import { join, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { copyInto as buildCopyInto, verify as buildVerify } from './build.js';
+import { buildSingleFile, escapeForInlineScript, declaredSources, markupLeftovers } from './bundle-single.js';
 import {
   toOpenAIRequest, createStreamTranslator, openAIResponseToAnthropic,
   resolvePreset, PRESETS, retiredPresets
@@ -904,6 +905,144 @@ section('Deploy bundle guards');
       '.env leaked into the bundle'));
 
   rmSync(tmp, { recursive: true, force: true });
+}
+
+section('Single-file bundle');
+/* The one-file build inlines 33 scripts into a single <script> element. The
+   toolkit ships '<script>alert(1)</script>' as an XSS probe in the
+   random-string tool, and the HTML parser closes an inline script at the first
+   literal "</script" regardless of it being inside a JS string -- which
+   truncated the bundle mid-file and left a blank page. */
+{
+  eq('an escaped closing tag is the same string to JS',
+    // eslint-disable-next-line no-new-func
+    new Function('return ' + escapeForInlineScript("'</script>'"))(), '</script>');
+  ok('the HTML parser sees no closing tag left',
+    !/<\/script/i.test(escapeForInlineScript('var probe = "</script>";')));
+  ok('an HTML comment opener is neutralised too',
+    !escapeForInlineScript('var x = "<!--";').includes('<!--'));
+
+  const srcs = declaredSources(readFileSync(join(ROOT, 'index.html'), 'utf8'));
+  ok('every script index.html declares is picked up', srcs.scripts.length >= 30);
+  eq('the stylesheet is picked up', srcs.styles.length, 1);
+  ok('the order index.html declares is kept', srcs.scripts[0].endsWith('js/core.js'));
+  ok('boot.js stays last, so it runs after the registry is filled',
+    srcs.scripts[srcs.scripts.length - 1].endsWith('js/boot.js'));
+
+  const page = buildSingleFile();
+  const closes = [...page.matchAll(/<\/script\b/gi)];
+  eq('exactly one script element closes', closes.length, 1);
+  ok('and it closes at the end, so no code is stranded', page.length - closes[0].index < 40);
+  eq('nothing in the markup points at a separate file', markupLeftovers(page), []);
+  ok('the fonts are embedded', page.includes('data:font/woff2;base64,'));
+  ok('the logos are embedded', page.includes('data:image/png;base64,'));
+  ok('the XSS probe survived escaping intact', page.includes('alert(1)'));
+  ok('the host supplies the wrappers, so the page carries none',
+    !/<\/body>|<\/html>|<!DOCTYPE/i.test(page));
+}
+
+section('Artifact download adapter');
+/* Eleven tools hand the user a file through QAT.download(), which clicks an
+   <a download>. The claude.ai artifact viewer never grants a page download
+   permission, so there that click does nothing at all -- no file, no error.
+   The adapter re-points the helper at the viewer's save() when the runtime is
+   present, and must stay completely inert when it is not.
+
+   Two extensions decide whether this works in practice: .csv needs extended
+   types enabled and .sql is on neither allowlist, so the retry path carries 8
+   of the 14 call sites. */
+{
+  const realToast = QAT.toast;
+  const realDownload = QAT.download;
+  const toasts = [];
+  QAT.toast = (msg, kind) => { toasts.push({ msg: String(msg), kind: kind || '' }); };
+
+  load('scripts/artifact-adapter.js');
+  ok('with no artifact runtime the adapter changes nothing', QAT.download === realDownload);
+
+  const calls = [];
+  let answer = () => Promise.resolve({ status: 'saved' });
+  const reject = (code) => () => Promise.reject({ code, message: code + ' from the stub' });
+
+  define('claude', {
+    use: (name) => Promise.resolve(
+      name === 'downloads' ? { save: (req) => { calls.push(req); return answer(req); } } : null)
+  }, { force: true });
+
+  load('scripts/artifact-adapter.js');
+  ok('with the runtime present QAT.download is re-pointed', QAT.download !== realDownload);
+  ok('the original stays reachable', QAT.downloadViaBlob === realDownload);
+
+  // --- the happy path, and the BOM the original added for Excel ----------
+  toasts.length = 0; calls.length = 0;
+  await QAT.download('test-data.csv', 'a,b');
+  eq('the file is offered once', calls.length, 1);
+  eq('under its own name', calls[0].filename, 'test-data.csv');
+  ok('a CSV still carries the BOM, so Excel reads Vietnamese correctly',
+    calls[0].data.charCodeAt(0) === 0xFEFF);
+  eq('the content follows the BOM', calls[0].data.slice(1), 'a,b');
+  ok('and the user is told it saved', toasts.some((t) => t.kind === 'ok' && t.msg.includes('test-data.csv')));
+
+  // --- .sql is on no allowlist: retry as .txt rather than lose the data ---
+  toasts.length = 0; calls.length = 0;
+  let first = true;
+  answer = () => { if (first) { first = false; return reject('rejected_extension')(); } return Promise.resolve({ status: 'saved' }); };
+  await QAT.download('query.sql', 'SELECT 1');
+  eq('a rejected extension is retried once', calls.length, 2);
+  eq('the first attempt keeps the real extension', calls[0].filename, 'query.sql');
+  eq('the retry appends .txt and keeps the original name visible', calls[1].filename, 'query.sql.txt');
+  ok('the toast names the file that was actually saved',
+    toasts.some((t) => t.kind === 'ok' && t.msg.includes('query.sql.txt')));
+
+  // --- .csv when extended types are off ---------------------------------
+  toasts.length = 0; calls.length = 0;
+  first = true;
+  answer = () => { if (first) { first = false; return reject('extension_not_enabled')(); } return Promise.resolve({ status: 'saved' }); };
+  await QAT.download('report.csv', 'x');
+  eq('an extension that is not enabled is retried too', calls.length, 2);
+  eq('as .csv.txt', calls[1].filename, 'report.csv.txt');
+
+  // --- a retry that also fails must not loop ----------------------------
+  toasts.length = 0; calls.length = 0;
+  answer = reject('rejected_extension');
+  await QAT.download('query.sql', 'SELECT 1');
+  eq('the retry is not itself retried', calls.length, 2);
+  ok('and the failure is reported', toasts.some((t) => t.kind === 'err'));
+
+  // --- the viewer said no ------------------------------------------------
+  toasts.length = 0; calls.length = 0;
+  answer = reject('declined');
+  await QAT.download('ids.txt', '1');
+  eq('a decline is never retried', calls.length, 1);
+  ok('and is not dressed up as an error', toasts.length === 1 && toasts[0].kind === '');
+
+  // --- too big -----------------------------------------------------------
+  toasts.length = 0; calls.length = 0;
+  answer = reject('too_large');
+  await QAT.download('big.json', '{}');
+  eq('an oversize file is not retried', calls.length, 1);
+  ok('the message says what to do about it',
+    toasts.some((t) => t.kind === 'err' && t.msg.includes('16 MB')));
+
+  // --- an unknown code still tells the user something --------------------
+  toasts.length = 0; calls.length = 0;
+  answer = reject('some_code_added_later');
+  await QAT.download('ids.txt', '1');
+  ok('an unrecognised code is reported rather than swallowed',
+    toasts.some((t) => t.kind === 'err'));
+
+  // --- saving unavailable in this view -----------------------------------
+  toasts.length = 0; calls.length = 0;
+  define('claude', { use: () => Promise.resolve(null) }, { force: true });
+  load('scripts/artifact-adapter.js');
+  await QAT.download('ids.txt', '1');
+  eq('nothing is offered when the capability is absent', calls.length, 0);
+  ok('and the user is pointed at Copy instead',
+    toasts.some((t) => t.kind === 'err' && /Copy/.test(t.msg)));
+
+  QAT.toast = realToast;
+  QAT.download = realDownload;
+  define('claude', undefined, { force: true });
 }
 
 /* ========================================================================= */
