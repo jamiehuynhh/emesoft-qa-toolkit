@@ -13,6 +13,7 @@
     "dev": "node --watch server/server.js",
     "build": "node scripts/build.js",
     "build:single": "node scripts/bundle-single.js",
+    "build:docs": "node scripts/make-docx.js && node scripts/make-pptx.js",
     "test": "node scripts/selftest.js",
     "check": "node scripts/selftest.js",
     "mock": "node scripts/mock-provider.js",

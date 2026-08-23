@@ -20,6 +20,7 @@ Thumbs.db
 dist/
 dist-selftest/
 dist-single/
+out/
 _site/
 *.zip
 tmp/

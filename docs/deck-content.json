@@ -1,0 +1,124 @@
+{
+  "_comment": "Nội dung bộ slide. Tách khỏi scripts/make-office.ps1 để sửa câu chữ không phải đụng vào code dựng slide, và để PowerShell 5.1 không làm hỏng dấu tiếng Việt — script chỉ chứa ASCII, file này đọc bằng UTF-8.",
+  "url": "emesoft-qa-toolkit.pages.dev",
+  "slides": [
+    {
+      "type": "title",
+      "eyebrow": "EmeSoft · Quality Assurance",
+      "heading": ["The everyday QA jobs,", "in one place"],
+      "lede": "24 công cụ đội QA của EmeSoft dùng hằng ngày. 20 trong số đó chạy hoàn toàn trong trình duyệt của bạn — không upload, không tài khoản, không cài đặt."
+    },
+    {
+      "type": "text",
+      "eyebrow": "Vấn đề",
+      "heading": ["Thời gian kiểm thử", "trôi vào việc lặt vặt"],
+      "paras": [
+        "Định dạng lại JSON. So hai file export. Giải mã một token để biết vì sao 401. Bịa 200 dòng dữ liệu hợp lệ. Đọc HAR tìm request chậm.",
+        "Không việc nào là kiểm thử. Mọi việc đều phải làm trước khi kiểm thử bắt đầu."
+      ],
+      "note": "Cách xử lý thông thường là dán dữ liệu vào một trang online lạ nào đó. Với dữ liệu của khách hàng, đó là rủi ro không cần thiết."
+    },
+    {
+      "type": "table",
+      "eyebrow": "Nội dung",
+      "heading": ["24 công cụ, 5 nhóm"],
+      "header": ["Nhóm", "Gồm những gì", "Tool"],
+      "rows": [
+        ["Text", "So sánh, đếm, đổi kiểu chữ, lọc dòng, regex, lint AC", "6"],
+        ["Data", "JSON, CSV, SQL, timestamp, Base64, URL, dữ liệu VN", "7"],
+        ["API & Security", "JWT, hash, API response, phân tích HAR", "4"],
+        ["Test Data", "Dữ liệu giả kiểu VN, UUID, giá trị biên", "3"],
+        ["AI Assistant", "Test case, bug report, phân tích log, báo cáo", "4"]
+      ],
+      "note": "Tìm nhanh bằng Ctrl + K. Giao diện tiếng Việt và tiếng Anh."
+    },
+    {
+      "type": "stats",
+      "invert": true,
+      "eyebrow": "Điều quan trọng nhất",
+      "heading": ["Dữ liệu của bạn", "không rời khỏi trình duyệt"],
+      "stats": [
+        { "n": "20", "label": "tool xử lý hoàn toàn tại máy bạn" },
+        { "n": "0", "label": "request ra ngoài khi bạn dùng chúng" },
+        { "n": "0", "label": "tài khoản cần tạo" }
+      ],
+      "lede": "Mở tab Network trong DevTools rồi bấm chạy bất kỳ tool nào — bạn sẽ không thấy request nào. Rút mạng, nó vẫn chạy. Ngay cả phông chữ cũng được tự host, nên trang không gọi tới bất kỳ bên thứ ba nào.",
+      "note": "Bốn tool AI là ngoại lệ có chủ đích, và chỉ gửi đi khi bạn chủ động bấm chạy."
+    },
+    {
+      "type": "code",
+      "eyebrow": "Dữ liệu Việt Nam",
+      "heading": ["Bắt lỗi mà mắt thường không thấy"],
+      "codeWidth": 480,
+      "code": [
+        { "t": "0100109106    hợp lệ", "c": "ink" },
+        { "t": "0101245678    sai chữ số kiểm tra", "c": "bad" },
+        { "t": "091234567     thiếu một chữ số", "c": "bad" }
+      ],
+      "lede": "MST và CCCD Việt Nam có chữ số kiểm tra. Sai một ký tự vẫn “trông đúng”, và chỉ vỡ ra khi import vào hệ thống thật.",
+      "bullets": [
+        "Kiểm tra MST, CCCD, số điện thoại, email, số tài khoản, thẻ — báo rõ sai ở đâu và vì sao.",
+        "Sinh dữ liệu giả kiểu Việt Nam: họ tên, địa chỉ, đầu số thật, MST hợp lệ theo check digit.",
+        "Xuất CSV có BOM, nên Excel mở tiếng Việt không lỗi font."
+      ]
+    },
+    {
+      "type": "code",
+      "eyebrow": "Chặn lỗi từ đầu",
+      "heading": ["Bắt yêu cầu mơ hồ", "trước khi viết test case"],
+      "codeWidth": 660,
+      "code": [
+        { "t": "“Hệ thống phải xử lý nhanh và thân thiện.”", "c": "bad" },
+        { "t": "      → “nhanh” là bao nhiêu ms? Đo ở đâu?", "c": "dim" },
+        { "t": "", "c": "dim" },
+        { "t": "“Danh sách load trong 2 giây với 10.000 bản ghi.”", "c": "good" },
+        { "t": "      → kiểm thử được.", "c": "dim" }
+      ],
+      "lede": "Acceptance Criteria Linter đọc yêu cầu, chỉ ra chỗ không thể kiểm thử, và biến chúng thành câu hỏi gửi ngược lại người viết. Không dùng AI, chạy tức thì."
+    },
+    {
+      "type": "cards",
+      "eyebrow": "AI Assistant",
+      "heading": ["Hỗ trợ AI, không khoá bạn vào ai cả"],
+      "cards": [
+        { "n": "01", "title": "Không cần API key", "body": "Tool soạn sẵn prompt đầy đủ ngữ cảnh. Bấm Copy prompt, dán vào trợ lý AI mà đội bạn đã dùng." },
+        { "n": "02", "title": "Có key thì chạy thẳng", "body": "Cắm key của bạn vào là sinh kết quả ngay trong trang. Không bắt buộc, và key nằm trong trình duyệt bạn." },
+        { "n": "03", "title": "Che dữ liệu nhạy cảm", "body": "Email, số điện thoại, số thẻ và token được che trước khi prompt rời khỏi trang." }
+      ],
+      "lede": "Giá trị nằm ở chỗ biết phải hỏi gì — bốn tool này viết test case, bug report, phân tích log và tổng hợp báo cáo. Model nào chạy là lựa chọn của bạn."
+    },
+    {
+      "type": "stats",
+      "eyebrow": "Vì sao tin được",
+      "heading": ["Kỷ luật kỹ thuật, không phải lời hứa"],
+      "stats": [
+        { "n": "421", "label": "kiểm thử tự động chạy trước mỗi lần deploy" },
+        { "n": "0", "label": "thư viện bên thứ ba" },
+        { "n": "7", "label": "security header trên mọi request" }
+      ],
+      "bullets": [
+        "Test fail thì không deploy. Không có đường vòng.",
+        "Không npm dependency nào, nên không có chuỗi cung ứng để bị tấn công.",
+        "Content-Security-Policy khoá trang chỉ tải được tài nguyên của chính nó.",
+        "Mỗi cơ chế bảo vệ có test cố tình phá thứ nó canh, để chắc chắn nó thật sự bắt được."
+      ]
+    },
+    {
+      "type": "bullets",
+      "eyebrow": "Dùng thử",
+      "heading": ["Mở là chạy"],
+      "showUrlBig": true,
+      "bullets": [
+        "Mọi thiết bị có trình duyệt. Không cài đặt, không đăng nhập.",
+        "Tiếng Việt và tiếng Anh, đổi bằng một nút.",
+        "Cần chạy trong mạng nội bộ? Toàn bộ là file tĩnh — tự host được, hoặc dùng bản một file HTML chạy offline hoàn toàn."
+      ]
+    },
+    {
+      "type": "close",
+      "eyebrow": "Cảm ơn",
+      "heading": ["Câu hỏi?"],
+      "lede": "Được xây dựng và bảo trì bởi team Next Orchestrated AI, EmeSoft."
+    }
+  ]
+}
