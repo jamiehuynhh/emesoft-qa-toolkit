@@ -543,39 +543,44 @@ mục đó không lên site — chỉ `dist/` được publish, và `build.js` s
 > Cloudflare Pages và Netlify không có ràng buộc non-commercial ở gói free, và cả hai đều đọc
 > `_headers` — nên vẫn giữ đủ CSP. Nếu công ty không duyệt chi phí thì chọn một trong hai.
 
-#### Cloudflare Pages — lựa chọn được khuyến nghị
+#### Cloudflare Pages — đang chạy ở đây
 
-Free, không ràng buộc non-commercial, giữ đủ security header. Cấu hình sẵn ở
+**https://emesoft-qa-toolkit.pages.dev**
+
+Free, không ràng buộc non-commercial, giữ đủ security header. Cấu hình ở
 [wrangler.toml](wrangler.toml) và [.node-version](.node-version).
 
-**Cách 1 — đẩy thẳng, không cần repo:**
+Deploy lại sau khi sửa code — ba lệnh, không cần repo GitHub:
+
+```bash
+npm test
+```
 
 ```bash
 npm run build
 ```
 
 ```bash
-npx wrangler pages deploy dist --project-name emesoft-qa-toolkit
+npx wrangler pages deploy dist --project-name emesoft-qa-toolkit --branch main
 ```
 
-Lần đầu wrangler sẽ mở trình duyệt để đăng nhập Cloudflare.
+Lần đầu trên một tài khoản mới cần tạo project trước, `pages deploy` **không** tự tạo:
 
-**Cách 2 — nối repo, tự deploy mỗi lần push:** trong dashboard chọn
-**Workers & Pages → Create → Pages → Connect to Git**, rồi đặt:
+```bash
+npx wrangler pages project create emesoft-qa-toolkit --production-branch main
+```
 
-| Trường | Giá trị |
-|---|---|
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Node version | đã pin sẵn bằng `.node-version` (22.16.0) |
+Và đăng nhập một lần: `npx wrangler login`. Trên Windows, nếu PowerShell báo
+*"npx.ps1 cannot be loaded because running scripts is disabled"* thì đó là execution policy
+mặc định chặn file `.ps1`; gọi `npx.cmd` thay cho `npx` là xong, không cần đổi policy máy.
+
+**Nối repo để tự deploy mỗi lần push:** dashboard → **Workers & Pages → emesoft-qa-toolkit →
+Settings → Builds → Connect to Git**, build command `npm run build`, output directory `dist`.
+Node version không cần điền, `.node-version` lo rồi.
 
 `wrangler.toml` giữ output directory trong repo nên bản build từ Git và bản đẩy tay từ máy
-không thể lệch nhau. Mặc định Pages build bằng Node 22.16.0; `.node-version` chốt lại con số
-đó để họ đổi mặc định cũng không làm rơi project xuống runtime cũ hơn `engines` yêu cầu.
-
-Pages đọc [_headers](_headers) từ gốc `dist/` và **không** serve file đó ra ngoài. Bảy header
-trong đó được `npm test` đối chiếu với `vercel.json` và `server/security.js` — lệch một ký
-tự là test đỏ.
+không thể lệch nhau. Pages đọc [_headers](_headers) từ gốc `dist/` và không serve file đó ra
+ngoài — đã kiểm chứng trên bản live: đủ 7 header, `/_headers` trả 404.
 
 Toolkit nằm sâu trong mọi hạn mức của gói free:
 
@@ -584,8 +589,12 @@ Toolkit nằm sâu trong mọi hạn mức của gói free:
 | Số file | 47 | 20.000 |
 | File lớn nhất | 69 KB | 25 MiB |
 | Rule trong `_headers` | 7 | 100 |
-| Build / tháng | 1 mỗi lần push | 500 |
+| Build / tháng | 1 mỗi lần deploy | 500 |
 | Request tới file tĩnh | — | không giới hạn |
+
+> Mỗi lần deploy còn sinh một alias dạng `<hash>.emesoft-qa-toolkit.pages.dev`. Với project
+> mới, alias đó có thể chưa bắt tay TLS được trong ít phút đầu trong khi domain chính đã chạy
+> — dùng domain chính.
 
 #### Netlify
 
