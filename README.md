@@ -367,6 +367,8 @@ scripts/artifact-adapter.js  chỉ vào bản 1-file: tải file trong artifact 
 scripts/selftest.js      npm test — nạp chính code browser rồi assert
 scripts/mock-provider.js npm run mock — provider giả để test luồng AI
 scripts/probe-providers.js npm run probe — endpoint nào tới được
+wrangler.toml            project + output dir cho Cloudflare Pages
+.node-version            chốt Node 22.16.0 cho máy build của Pages
 vercel.json              build command, output dir, 7 security header cho Vercel
 .vercelignore            secret + output không được upload lên máy build
 .env.example             mẫu cấu hình, copy thành .env
@@ -541,23 +543,65 @@ mục đó không lên site — chỉ `dist/` được publish, và `build.js` s
 > Cloudflare Pages và Netlify không có ràng buộc non-commercial ở gói free, và cả hai đều đọc
 > `_headers` — nên vẫn giữ đủ CSP. Nếu công ty không duyệt chi phí thì chọn một trong hai.
 
-#### Netlify / Cloudflare Pages
+#### Cloudflare Pages — lựa chọn được khuyến nghị
 
-Build command `npm run build`, publish directory `dist`. Hai host này đọc file
-[_headers](_headers) nên **giữ được toàn bộ security header** (CSP, X-Frame-Options,
-HSTS…) giống như khi chạy Node server.
+Free, không ràng buộc non-commercial, giữ đủ security header. Cấu hình sẵn ở
+[wrangler.toml](wrangler.toml) và [.node-version](.node-version).
 
-Không muốn nối repo: chạy `npm run build` rồi kéo thả thư mục `dist/` vào
+**Cách 1 — đẩy thẳng, không cần repo:**
+
+```bash
+npm run build
+```
+
+```bash
+npx wrangler pages deploy dist --project-name emesoft-qa-toolkit
+```
+
+Lần đầu wrangler sẽ mở trình duyệt để đăng nhập Cloudflare.
+
+**Cách 2 — nối repo, tự deploy mỗi lần push:** trong dashboard chọn
+**Workers & Pages → Create → Pages → Connect to Git**, rồi đặt:
+
+| Trường | Giá trị |
+|---|---|
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node version | đã pin sẵn bằng `.node-version` (22.16.0) |
+
+`wrangler.toml` giữ output directory trong repo nên bản build từ Git và bản đẩy tay từ máy
+không thể lệch nhau. Mặc định Pages build bằng Node 22.16.0; `.node-version` chốt lại con số
+đó để họ đổi mặc định cũng không làm rơi project xuống runtime cũ hơn `engines` yêu cầu.
+
+Pages đọc [_headers](_headers) từ gốc `dist/` và **không** serve file đó ra ngoài. Bảy header
+trong đó được `npm test` đối chiếu với `vercel.json` và `server/security.js` — lệch một ký
+tự là test đỏ.
+
+Toolkit nằm sâu trong mọi hạn mức của gói free:
+
+| | Toolkit | Hạn mức free |
+|---|---|---|
+| Số file | 47 | 20.000 |
+| File lớn nhất | 69 KB | 25 MiB |
+| Rule trong `_headers` | 7 | 100 |
+| Build / tháng | 1 mỗi lần push | 500 |
+| Request tới file tĩnh | — | không giới hạn |
+
+#### Netlify
+
+Build command `npm run build`, publish directory `dist`. Cũng đọc `_headers`, cũng giữ đủ
+header. Không muốn nối repo: chạy `npm run build` rồi kéo thả thư mục `dist/` vào
 [app.netlify.com/drop](https://app.netlify.com/drop).
 
 ⚠️ **GitHub Pages không hỗ trợ custom header.** Deploy lên Pages là mất CSP,
 X-Frame-Options, Referrer-Policy và HSTS. Với tool nội bộ thì thường chấp nhận được, nhưng
-cần biết. Muốn giữ header thì chọn Netlify hoặc Cloudflare Pages.
+cần biết.
 
 **Các công cụ AI trên static host:** không có `/api/ai`, nên toolkit sẽ báo đúng lý do
 ("địa chỉ này serve được file nhưng không có endpoint /api/ai"). Hai cách dùng:
 nút **Copy prompt** (không cần key gì) hoặc chế độ **Direct** với key free cá nhân.
-Nếu dùng Direct với provider ngoài Anthropic, thêm host đó vào `connect-src` trong `_headers`.
+Nếu dùng Direct với provider ngoài Anthropic, thêm host đó vào `connect-src` trong `_headers`
+**và** trong `vercel.json` — test sẽ nhắc nếu bạn chỉ sửa một chỗ.
 
 ### Có Node ở server (nếu sau này cần proxy AI)
 

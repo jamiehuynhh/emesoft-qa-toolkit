@@ -1,0 +1,18 @@
+# Cloudflare Pages project configuration.
+#
+# Keeps the output directory in the repository instead of only in the Pages
+# dashboard, so the Git-integration build and a `wrangler pages deploy` from a
+# laptop cannot disagree about what gets published.
+#
+# The build command itself is not a key Pages reads here: with Git integration
+# you set it once in the dashboard (`npm run build`), and for a direct upload
+# you have already run it locally. Either way `dist/` is what ships, and
+# scripts/build.js refuses to produce a dist/ containing server code or a
+# secret.
+#
+# There are no Pages Functions in this project. The whole toolkit is static
+# files, which is why the free plan serves it without limit.
+
+name = "emesoft-qa-toolkit"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-08-23"

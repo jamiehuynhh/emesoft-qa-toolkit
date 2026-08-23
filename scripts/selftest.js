@@ -1091,6 +1091,54 @@ section('Security headers agree across all three hosts');
   }
 }
 
+section('Deploy targets agree with each other');
+/* Three hosts are configured from this repository and each names the folder
+   to publish. If they drift, one host serves a stale or empty site while the
+   others are fine -- the kind of failure nobody sees until a tester reports
+   a blank page. wrangler.toml is read with a regex rather than a TOML
+   parser: it holds three flat keys, and adding a dependency to check three
+   keys would cost more than it protects. */
+{
+  const vercel = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8'));
+  const wrangler = readFileSync(join(ROOT, 'wrangler.toml'), 'utf8');
+
+  const key = (name) => {
+    const m = wrangler.match(new RegExp('^' + name + '\\s*=\\s*"([^"]+)"$', 'm'));
+    return m && m[1];
+  };
+
+  const cfOut = key('pages_build_output_dir');
+  ok('wrangler.toml names a build output directory', Boolean(cfOut));
+  ok('wrangler.toml names the project', Boolean(key('name')));
+  ok('wrangler.toml sets a compatibility date', /^compatibility_date = "20[0-9]{2}-[0-9]{2}-[0-9]{2}"$/m.test(wrangler));
+
+  // "./dist" and "dist" are the same folder; compare them as folders.
+  const norm = (d) => d.replace(/^\.\//, '').replace(/\/$/, '');
+  eq('Cloudflare Pages and Vercel publish the same folder',
+    norm(cfOut), norm(vercel.outputDirectory));
+
+  // Whatever that folder is, it must never be committed.
+  const ignored = readFileSync(join(ROOT, '.gitignore'), 'utf8').split(/\r?\n/);
+  ok('and the published folder is gitignored',
+    ignored.includes(norm(cfOut) + '/'));
+
+  // Cloudflare caps a _headers file at 100 rules; the toolkit uses far fewer,
+  // but a future addition should trip this rather than be silently dropped.
+  const rules = readFileSync(join(ROOT, '_headers'), 'utf8')
+    .split(/\r?\n/).filter((l) => /^  [A-Za-z-]+:/.test(l)).length;
+  ok('_headers stays inside the 100-rule limit Cloudflare Pages enforces, at ' + rules,
+    rules > 0 && rules <= 100);
+
+  // Pages builds on Node 22 by default; pinning it means a change to their
+  // default cannot quietly drop the project onto a runtime the tests need.
+  const pinned = readFileSync(join(ROOT, '.node-version'), 'utf8').trim();
+  ok('.node-version pins a concrete version, got ' + pinned, /^[0-9]+(\.\d+){0,2}$/.test(pinned));
+  const engines = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).engines.node;
+  const major = (v) => Number(String(v).replace(/[^0-9.]/g, '').split('.')[0]);
+  ok('and it satisfies the engines range in package.json (' + engines + ')',
+    major(pinned) >= major(engines));
+}
+
 /* ========================================================================= */
 console.log('\n  ' + '='.repeat(56));
 if (failures.length) {
