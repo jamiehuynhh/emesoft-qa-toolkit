@@ -1,0 +1,446 @@
+<title>EmeSoft QA Toolkit Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* ==========================================================================
+   Palette and type are the product's own, not a new identity: brand red
+   #D3222A and the warm dark #252724 were measured off emesoft.net when the
+   toolkit was built, and Montserrat is the brand face. The deck should look
+   like the thing it is presenting.
+
+   Neutrals are warmed toward that dark rather than left as pure grey, so the
+   page reads as one family instead of brand colour dropped on a default.
+   ========================================================================== */
+:root{
+  --paper:#FBFAF8;
+  --surface:#FFFFFF;
+  --ink:#252724;
+  --ink-2:#4A4C47;
+  /* 5.33:1 on --paper. The obvious warmer grey measured 4.09 and failed AA for
+     the eyebrow and note sizes, which are the smallest type on the page. */
+  --muted:#68695F;
+  --line:#E4E1DB;
+  --brand:#D3222A;
+  --brand-soft:rgba(211,34,42,.10);
+  --invert-bg:#1C1E1B;
+  --invert-fg:#F5F3EF;
+  --invert-muted:#A3A59D;
+  /* The inverted slide stands on the opposite ground, so the accent has to flip
+     too: #D3222A reads 3.22:1 on that dark, while #F2555C reads 4.98:1. */
+  --brand-on-invert:#F2555C;
+  --ok:#1F7A4D;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#171916;
+    --surface:#1E211D;
+    --ink:#F2F0EC;
+    --ink-2:#C9C7C1;
+    --muted:#8E9089;
+    --line:#31352F;
+    --brand:#F2555C;
+    --brand-soft:rgba(242,85,92,.14);
+    --invert-bg:#F5F3EF;
+    --invert-fg:#1C1E1B;
+    --invert-muted:#5E605A;
+    --brand-on-invert:#D3222A;   /* invert ground is light here: 4.70:1 */
+    --ok:#4FBF87;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#171916;
+  --surface:#1E211D;
+  --ink:#F2F0EC;
+  --ink-2:#C9C7C1;
+  --muted:#8E9089;
+  --line:#31352F;
+  --brand:#F2555C;
+  --brand-soft:rgba(242,85,92,.14);
+  --invert-bg:#F5F3EF;
+  --invert-fg:#1C1E1B;
+  --invert-muted:#5E605A;
+  --brand-on-invert:#D3222A;   /* invert ground is light here: 4.70:1 */
+  --ok:#4FBF87;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- deck mechanics ---------- */
+.deck{scroll-snap-type:y mandatory;height:100dvh;overflow-y:auto;scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ .deck{scroll-behavior:auto} }
+
+.slide{
+  scroll-snap-align:start;
+  min-height:100dvh;
+  display:grid;
+  align-content:center;
+  padding:clamp(28px,6vw,96px);
+  padding-bottom:clamp(64px,9vw,120px);
+  gap:clamp(14px,2vw,26px);
+  position:relative;
+  border-bottom:1px solid var(--line);
+}
+.slide > *{max-width:62rem}
+
+/* the one inverted slide — emphasis spent in a single place */
+.slide.invert{background:var(--invert-bg);color:var(--invert-fg);border-bottom-color:transparent}
+.slide.invert .eyebrow{color:var(--invert-muted)}
+.slide.invert .lede{color:var(--invert-fg)}
+.slide.invert .note{color:var(--invert-muted)}
+.slide.invert .rule{background:var(--invert-muted);opacity:.3}
+
+/* ---------- type ---------- */
+.eyebrow{
+  font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0;
+}
+h1{
+  font-size:clamp(2.4rem,7vw,5rem);font-weight:800;letter-spacing:-.03em;line-height:1.02;
+  margin:0;text-wrap:balance;
+}
+h2{
+  font-size:clamp(1.75rem,4.4vw,3.1rem);font-weight:800;letter-spacing:-.025em;line-height:1.08;
+  margin:0;text-wrap:balance;
+}
+h3{font-size:1.02rem;font-weight:600;letter-spacing:-.005em;margin:0}
+p{margin:0;max-width:46rem}
+.lede{font-size:clamp(1.05rem,2vw,1.35rem);font-weight:400;color:var(--ink-2);line-height:1.5}
+.note{font-size:.9rem;color:var(--muted);max-width:44rem}
+strong{font-weight:600}
+.accent{color:var(--brand)}
+.rule{height:1px;background:var(--line);border:0;width:clamp(56px,8vw,104px);margin:0}
+
+/* ---------- data & code ---------- */
+.mono{font-family:'JetBrains Mono',ui-monospace,'SFMono-Regular',Consolas,monospace}
+
+.stat-row{display:flex;flex-wrap:wrap;gap:clamp(22px,5vw,68px);margin:0;padding:0}
+.stat{display:grid;gap:2px}
+.stat dt{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:clamp(2rem,5vw,3.4rem);font-weight:600;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--brand);
+}
+.stat dd{margin:0;font-size:.86rem;color:var(--muted);max-width:15rem;line-height:1.4}
+.invert .stat dd{color:var(--invert-muted)}
+.invert .stat dt{color:var(--brand-on-invert)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.grid > div{background:var(--surface);padding:20px 22px;display:grid;gap:7px;align-content:start}
+.grid .n{
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.76rem;font-weight:600;
+  color:var(--brand);letter-spacing:.06em;font-variant-numeric:tabular-nums;
+}
+.grid p{font-size:.87rem;color:var(--muted);line-height:1.45}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:30rem;font-size:.92rem}
+th,td{text-align:left;padding:12px 20px;border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
+th{
+  font-size:.7rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+}
+td.num{
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  text-align:right;width:1%;white-space:nowrap;font-weight:600;
+}
+
+.code{
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.84rem;line-height:1.75;
+  background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--brand);
+  padding:16px 20px;overflow-x:auto;white-space:pre;max-width:46rem;
+}
+.code .bad{color:var(--brand);font-weight:600}
+.code .good{color:var(--ok);font-weight:600}
+.code .dim{color:var(--muted)}
+
+.checks{display:grid;gap:11px;margin:0;padding:0;list-style:none;max-width:46rem}
+.checks li{display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:start;font-size:.97rem}
+.checks .mk{
+  font-family:'JetBrains Mono',ui-monospace,monospace;color:var(--brand);font-weight:600;
+  font-size:.8rem;padding-top:.22em;
+}
+.invert .checks .mk{color:var(--brand-on-invert)}
+
+.url{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:clamp(.95rem,2.6vw,1.6rem);font-weight:600;letter-spacing:-.02em;
+  color:var(--brand);word-break:break-all;text-decoration:none;
+  border-bottom:2px solid var(--brand-soft);
+}
+.url:hover,.url:focus-visible{border-bottom-color:var(--brand)}
+
+/* ---------- chrome ---------- */
+.rail{position:fixed;top:0;left:0;height:3px;width:100%;background:transparent;z-index:20}
+.rail i{display:block;height:100%;width:0;background:var(--brand);transition:width .18s linear}
+@media (prefers-reduced-motion: reduce){ .rail i{transition:none} }
+
+.counter{
+  position:fixed;right:clamp(12px,2.4vw,26px);bottom:clamp(12px,2.4vw,26px);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.74rem;font-variant-numeric:tabular-nums;
+  color:var(--muted);background:var(--surface);border:1px solid var(--line);
+  padding:5px 11px;z-index:20;letter-spacing:.04em;
+}
+.hint{
+  position:fixed;left:clamp(12px,2.4vw,26px);bottom:clamp(12px,2.4vw,26px);
+  font-size:.72rem;color:var(--muted);z-index:20;letter-spacing:.02em;
+}
+@media (max-width:700px){ .hint{display:none} }
+
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+
+@media print{
+  .rail,.counter,.hint{display:none}
+  .deck{height:auto;overflow:visible}
+  .slide{min-height:auto;page-break-after:always;border-bottom:0;padding:34px}
+}
+</style>
+
+<div class="rail"><i id="railFill"></i></div>
+
+<main class="deck" id="deck">
+
+  <!-- 1 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">EmeSoft · Quality Assurance</p>
+    <h1>The everyday QA jobs,<br>in one place</h1>
+    <hr class="rule">
+    <p class="lede">
+      24 công cụ đội QA của EmeSoft dùng hằng ngày. 20 trong số đó chạy hoàn toàn
+      trong trình duyệt của bạn — không upload, không tài khoản, không cài đặt.
+    </p>
+    <p class="note mono">emesoft-qa-toolkit.pages.dev</p>
+  </section>
+
+  <!-- 2 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Vấn đề</p>
+    <h2>Thời gian kiểm thử trôi vào việc lặt vặt</h2>
+    <p class="lede">
+      Định dạng lại JSON. So hai file export. Giải mã một token để biết vì sao 401.
+      Bịa 200 dòng dữ liệu hợp lệ. Đọc HAR tìm request chậm.
+    </p>
+    <p class="lede">
+      Không việc nào là kiểm thử. Mọi việc đều phải làm trước khi kiểm thử bắt đầu.
+    </p>
+    <hr class="rule">
+    <p class="note">
+      Cách xử lý thông thường là dán dữ liệu vào một trang online lạ nào đó. Với dữ liệu
+      của khách hàng, đó là rủi ro không cần thiết.
+    </p>
+  </section>
+
+  <!-- 3 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Nội dung</p>
+    <h2>24 công cụ, 5 nhóm</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Nhóm</th><th>Gồm những gì</th><th style="text-align:right">Số tool</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Text</strong></td><td>So sánh, đếm, đổi kiểu chữ, lọc dòng, regex, lint AC</td><td class="num">6</td></tr>
+          <tr><td><strong>Data</strong></td><td>JSON, CSV, SQL, timestamp, Base64, URL, dữ liệu VN</td><td class="num">7</td></tr>
+          <tr><td><strong>API &amp; Security</strong></td><td>JWT, hash, API response, phân tích HAR</td><td class="num">4</td></tr>
+          <tr><td><strong>Test Data</strong></td><td>Dữ liệu giả kiểu VN, UUID, giá trị biên</td><td class="num">3</td></tr>
+          <tr><td><strong>AI Assistant</strong></td><td>Test case, bug report, phân tích log, báo cáo</td><td class="num">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Tìm nhanh bằng <span class="mono">Ctrl</span> + <span class="mono">K</span>. Giao diện tiếng Việt và tiếng Anh.</p>
+  </section>
+
+  <!-- 4 ── the emphasis slide ──────────────────────────────────── -->
+  <section class="slide invert">
+    <p class="eyebrow">Điều quan trọng nhất</p>
+    <h2>Dữ liệu của bạn không rời khỏi trình duyệt</h2>
+    <dl class="stat-row">
+      <div class="stat"><dt>20</dt><dd>tool xử lý hoàn toàn tại máy bạn</dd></div>
+      <div class="stat"><dt>0</dt><dd>request ra ngoài khi bạn dùng chúng</dd></div>
+      <div class="stat"><dt>0</dt><dd>tài khoản cần tạo</dd></div>
+    </dl>
+    <hr class="rule">
+    <p class="lede">
+      Mở tab Network trong DevTools rồi bấm chạy bất kỳ tool nào — bạn sẽ không thấy
+      request nào. Rút mạng, nó vẫn chạy. Ngay cả phông chữ cũng được tự host, nên
+      trang không gọi tới Google hay bất kỳ bên thứ ba nào.
+    </p>
+    <p class="note">
+      Bốn tool AI là ngoại lệ có chủ đích, và chỉ gửi đi khi bạn chủ động bấm chạy — chi tiết
+      ở phần sau.
+    </p>
+  </section>
+
+  <!-- 5 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Dữ liệu Việt Nam</p>
+    <h2>Bắt lỗi mà mắt thường không thấy</h2>
+    <div class="code"><span class="dim">Dán một cột mã số thuế:</span>
+
+0100109106   <span class="good">✓ hợp lệ</span>
+0101245678   <span class="bad">✗ sai chữ số kiểm tra</span>
+091234567    <span class="bad">✗ thiếu một chữ số</span></div>
+    <p class="lede">
+      MST và CCCD Việt Nam có chữ số kiểm tra. Sai một ký tự vẫn “trông đúng”, và chỉ vỡ ra
+      khi import vào hệ thống thật.
+    </p>
+    <ul class="checks">
+      <li><span class="mk">→</span><span>Kiểm tra MST, CCCD, số điện thoại, email, số tài khoản, thẻ — báo rõ <strong>sai ở đâu và vì sao</strong>.</span></li>
+      <li><span class="mk">→</span><span>Sinh dữ liệu giả kiểu Việt Nam: họ tên, địa chỉ, đầu số thật, MST hợp lệ theo check digit.</span></li>
+      <li><span class="mk">→</span><span>Xuất CSV có BOM, nên Excel mở tiếng Việt <strong>không lỗi font</strong>.</span></li>
+    </ul>
+  </section>
+
+  <!-- 6 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Chặn lỗi từ đầu</p>
+    <h2>Bắt yêu cầu mơ hồ<br>trước khi viết test case</h2>
+    <div class="code"><span class="bad">“Hệ thống phải xử lý nhanh và thân thiện.”</span>
+   <span class="dim">→ “nhanh” là bao nhiêu ms? Đo ở đâu?</span>
+   <span class="dim">→ “thân thiện” kiểm thử bằng cách nào?</span>
+
+<span class="good">“Danh sách load trong 2 giây với 10.000 bản ghi.”</span>
+   <span class="dim">→ kiểm thử được.</span></div>
+    <p class="lede">
+      Acceptance Criteria Linter đọc yêu cầu, chỉ ra chỗ không thể kiểm thử, và biến chúng
+      thành câu hỏi gửi ngược lại người viết.
+    </p>
+    <p class="note">
+      Không dùng AI, chạy tức thì. Một AC mơ hồ lọt vào sprint sẽ thành cuộc tranh cãi ở
+      cuối sprint.
+    </p>
+  </section>
+
+  <!-- 7 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">AI Assistant</p>
+    <h2>Hỗ trợ AI, không khoá bạn vào ai cả</h2>
+    <div class="grid">
+      <div>
+        <span class="n">01</span>
+        <h3>Không cần API key</h3>
+        <p>Tool soạn sẵn prompt đầy đủ ngữ cảnh. Bấm <strong>Copy prompt</strong>, dán vào trợ lý AI mà đội bạn đã dùng.</p>
+      </div>
+      <div>
+        <span class="n">02</span>
+        <h3>Có key thì chạy thẳng</h3>
+        <p>Cắm key của bạn vào là sinh kết quả ngay trong trang. Không bắt buộc, và key nằm trong trình duyệt bạn.</p>
+      </div>
+      <div>
+        <span class="n">03</span>
+        <h3>Che dữ liệu nhạy cảm</h3>
+        <p>Email, số điện thoại, số thẻ và token được che <strong>trước khi</strong> prompt rời khỏi trang.</p>
+      </div>
+    </div>
+    <p class="lede">
+      Giá trị nằm ở chỗ <strong>biết phải hỏi gì</strong> — bốn tool này viết test case, bug
+      report, phân tích log và tổng hợp báo cáo. Model nào chạy là lựa chọn của bạn.
+    </p>
+  </section>
+
+  <!-- 8 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Vì sao tin được</p>
+    <h2>Kỷ luật kỹ thuật, không phải lời hứa</h2>
+    <dl class="stat-row">
+      <div class="stat"><dt>421</dt><dd>kiểm thử tự động chạy trước mỗi lần deploy</dd></div>
+      <div class="stat"><dt>0</dt><dd>thư viện bên thứ ba</dd></div>
+      <div class="stat"><dt>7</dt><dd>security header áp trên mọi request</dd></div>
+    </dl>
+    <ul class="checks">
+      <li><span class="mk">→</span><span>Test fail thì <strong>không deploy</strong>. Không có đường vòng.</span></li>
+      <li><span class="mk">→</span><span>Không npm dependency nào ⇒ không có chuỗi cung ứng để bị tấn công.</span></li>
+      <li><span class="mk">→</span><span>Content-Security-Policy khoá trang chỉ tải được tài nguyên của chính nó.</span></li>
+      <li><span class="mk">→</span><span>Mỗi cơ chế bảo vệ có test <strong>cố tình phá</strong> thứ nó canh, để chắc chắn nó thật sự bắt được.</span></li>
+    </ul>
+  </section>
+
+  <!-- 9 ────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Dùng thử</p>
+    <h2>Mở là chạy</h2>
+    <p><a class="url" href="https://emesoft-qa-toolkit.pages.dev" target="_blank" rel="noopener">emesoft-qa-toolkit.pages.dev</a></p>
+    <hr class="rule">
+    <ul class="checks">
+      <li><span class="mk">→</span><span>Mọi thiết bị có trình duyệt. Không cài đặt, không đăng nhập.</span></li>
+      <li><span class="mk">→</span><span>Tiếng Việt và tiếng Anh, đổi bằng một nút.</span></li>
+      <li><span class="mk">→</span><span>Cần chạy trong mạng nội bộ? Toàn bộ là file tĩnh — tự host được, hoặc dùng bản <strong>một file HTML</strong> chạy offline hoàn toàn.</span></li>
+    </ul>
+  </section>
+
+  <!-- 10 ───────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Cảm ơn</p>
+    <h2>Câu hỏi?</h2>
+    <hr class="rule">
+    <p class="lede">
+      Được xây dựng và bảo trì bởi <strong class="accent">team Next Orchestrated AI</strong>, EmeSoft.
+    </p>
+    <p class="note mono">emesoft-qa-toolkit.pages.dev</p>
+  </section>
+
+</main>
+
+<div class="counter" id="counter">01 / 10</div>
+<p class="hint">← → hoặc cuộn để chuyển slide</p>
+
+<script>
+(function () {
+  'use strict';
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var fill = document.getElementById('railFill');
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+
+  function current() {
+    // the slide occupying the middle of the viewport is the one being read
+    var mid = deck.scrollTop + deck.clientHeight / 2;
+    for (var i = slides.length - 1; i >= 0; i--) {
+      if (slides[i].offsetTop <= mid) return i;
+    }
+    return 0;
+  }
+
+  function paint() {
+    var i = current();
+    counter.textContent = pad(i + 1) + ' / ' + pad(slides.length);
+    fill.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+
+  var queued = false;
+  deck.addEventListener('scroll', function () {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; paint(); });
+  }, { passive: true });
+
+  function go(step) {
+    var next = Math.min(slides.length - 1, Math.max(0, current() + step));
+    slides[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    // let the browser handle typing and shortcuts
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') { e.preventDefault(); go(1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); go(-1); }
+    else if (k === 'Home') { e.preventDefault(); slides[0].scrollIntoView({ behavior: 'smooth' }); }
+    else if (k === 'End') { e.preventDefault(); slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' }); }
+  });
+
+  paint();
+})();
+</script>
