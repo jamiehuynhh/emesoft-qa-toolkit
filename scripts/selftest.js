@@ -1045,6 +1045,52 @@ section('Artifact download adapter');
   define('claude', undefined, { force: true });
 }
 
+section('Security headers agree across all three hosts');
+/* The same protections are declared in three places: server/security.js
+   builds them for the Node server, _headers carries them to Netlify and
+   Cloudflare Pages, and vercel.json to Vercel. Nothing kept them in step, so
+   a header added to one and forgotten in the others would leave a deployed
+   site quietly weaker than the local one, with no failure to notice. */
+{
+  const lower = (o) => Object.fromEntries(
+    Object.entries(o).map(([k, v]) => [k.toLowerCase(), String(v).trim()]));
+
+  const fromHeadersFile = lower(Object.fromEntries(
+    readFileSync(join(ROOT, '_headers'), 'utf8')
+      .split(/\r?\n/)
+      .map((l) => l.match(/^  ([A-Za-z-]+):\s*(.+)$/))
+      .filter(Boolean)
+      .map((m) => [m[1], m[2]])));
+
+  const vercel = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8'));
+  eq('vercel.json applies its headers to every path', vercel.headers[0].source, '/(.*)');
+  eq('and publishes what the build produces', vercel.outputDirectory, 'dist');
+  ok('and gates the deploy on the tests, the way the Actions workflow does',
+    vercel.buildCommand.includes('npm test') && vercel.buildCommand.includes('npm run build'));
+
+  const fromVercel = lower(Object.fromEntries(
+    vercel.headers[0].headers.map((h) => [h.key, h.value])));
+
+  eq('_headers and vercel.json declare the same header names',
+    Object.keys(fromVercel).sort(), Object.keys(fromHeadersFile).sort());
+  for (const k of Object.keys(fromHeadersFile).sort()) {
+    eq('  ' + k + ' is identical in both', fromVercel[k], fromHeadersFile[k]);
+  }
+
+  // The Node server defaults connect-src to Anthropic alone; the static hosts
+  // list every provider Direct mode can reach. Feeding it the same list keeps
+  // this a drift check rather than a complaint about that deliberate default.
+  const connect = (fromHeadersFile['content-security-policy'].match(/connect-src ([^;]+)/) || [])[1] || '';
+  const connectExtra = connect.split(/\s+/).filter((t) => t && t !== "'self'");
+  const fromServer = lower(securityHeaders({ https: true, connectExtra }));
+
+  eq('the Node server sends the same header names as the static hosts',
+    Object.keys(fromServer).sort(), Object.keys(fromHeadersFile).sort());
+  for (const k of Object.keys(fromServer).sort()) {
+    eq('  ' + k + ' matches the Node server', fromHeadersFile[k], fromServer[k]);
+  }
+}
+
 /* ========================================================================= */
 console.log('\n  ' + '='.repeat(56));
 if (failures.length) {

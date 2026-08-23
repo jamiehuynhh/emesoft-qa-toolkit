@@ -1,0 +1,37 @@
+# What never gets uploaded to the build machine.
+#
+# `vercel` uploads the working directory, not a git archive, so .gitignore does
+# not protect anything here -- an untracked .env sitting on the machine would
+# be sent without this file.
+#
+# server/ and scripts/ are deliberately NOT listed: the build runs
+# `npm test && npm run build`, the tests import server/providers.js and
+# server/security.js, and the build itself is scripts/build.js. Neither ends up
+# on the site -- only outputDirectory ("dist") is published, and
+# scripts/build.js refuses to finish if either folder leaks into it.
+
+# secrets
+.env
+.env.*
+!.env.example
+*.key
+
+# build output — rebuilt on the deploy machine, and dist/ is the publish target
+dist/
+dist-single/
+dist-selftest/
+_site/
+*.zip
+
+# audit trail: local only, never leaves the machine
+logs/
+
+# not needed to build the site
+.git/
+.github/
+.vscode/
+node_modules/
+docs/
+*.log
+serve.bat
+serve.ps1

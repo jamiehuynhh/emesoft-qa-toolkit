@@ -367,6 +367,8 @@ scripts/artifact-adapter.js  chỉ vào bản 1-file: tải file trong artifact 
 scripts/selftest.js      npm test — nạp chính code browser rồi assert
 scripts/mock-provider.js npm run mock — provider giả để test luồng AI
 scripts/probe-providers.js npm run probe — endpoint nào tới được
+vercel.json              build command, output dir, 7 security header cho Vercel
+.vercelignore            secret + output không được upload lên máy build
 .env.example             mẫu cấu hình, copy thành .env
 .vscode/                 launch, tasks, settings, extensions
 jsconfig.json            IntelliSense cho code browser + server
@@ -504,6 +506,40 @@ deploy), rồi publish.
 
 Pages serve ở subpath `https://<user>.github.io/<repo>/`. Toolkit dùng đường dẫn tương đối
 và `js/ai.js` suy ra API base từ chính `src` của nó, nên subpath hoạt động không cần sửa gì.
+
+#### Vercel
+
+Cấu hình sẵn ở [vercel.json](vercel.json) và [.vercelignore](.vercelignore). Không cần repo
+GitHub — CLI đẩy thẳng thư mục hiện tại:
+
+```bash
+npx vercel login
+```
+
+```bash
+npx vercel --prod
+```
+
+Hoặc nối repo trên vercel.com — nó tự đọc `vercel.json`, không phải điền gì trong UI.
+
+Vercel sẽ chạy `npm test && npm run build` rồi publish `dist/`. Test fail thì deploy fail,
+giống hệt GitHub Actions. Vercel **có** custom header, nên giữ nguyên CSP/HSTS như khi chạy
+Node server — 7 header trong `vercel.json` được test đối chiếu với `_headers` **và** với
+`server/security.js`, lệch một ký tự là `npm test` đỏ.
+
+`.vercelignore` chặn `.env`, `logs/` và mọi output build. Nó **cố ý không** chặn `server/`
+và `scripts/`: build cần `scripts/build.js`, còn test import `server/providers.js`. Hai thư
+mục đó không lên site — chỉ `dist/` được publish, và `build.js` sẽ fail nếu chúng lọt vào.
+
+> ⚠️ **Gói Hobby (free) của Vercel không dùng được cho tool công ty.**
+> [Fair use guidelines](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage)
+> định nghĩa commercial usage là bất kỳ deployment nào phục vụ lợi ích tài chính của *bất kỳ ai*
+> tham gia, **kể cả nhân viên hưởng lương viết code**. Tool nội bộ của EmeSoft rơi vào đó, và
+> [trang Hobby](https://vercel.com/docs/plans/hobby) ghi rõ Hobby chỉ dành cho
+> *non-commercial, personal use*. Muốn hợp lệ phải lên **Pro, $20/user/tháng**.
+>
+> Cloudflare Pages và Netlify không có ràng buộc non-commercial ở gói free, và cả hai đều đọc
+> `_headers` — nên vẫn giữ đủ CSP. Nếu công ty không duyệt chi phí thì chọn một trong hai.
 
 #### Netlify / Cloudflare Pages
 
